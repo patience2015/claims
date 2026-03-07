@@ -1,0 +1,160 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("HANDLER") // HANDLER | MANAGER | ADMIN | POLICYHOLDER
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedClaims     Claim[]     @relation("AssignedClaims")
+  createdClaims      Claim[]     @relation("CreatedClaims")
+  comments           Comment[]
+  auditLogs          AuditLog[]
+  policyholderProfile Policyholder? @relation("UserPolicyholder")
+}
+
+model Policyholder {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+  address         String
+  // Vehicle info
+  vehicleMake     String
+  vehicleModel    String
+  vehicleYear     Int
+  vehiclePlate    String
+  vehicleVin      String?
+  // Contract info
+  policyNumber    String   @unique
+  contractStart   DateTime
+  contractEnd     DateTime
+  coverageType    String   // THIRD_PARTY | COMPREHENSIVE | ALL_RISKS
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  userId          String?  @unique
+  user            User?    @relation("UserPolicyholder", fields: [userId], references: [id])
+
+  claims          Claim[]
+}
+
+model Claim {
+  id              String   @id @default(cuid())
+  claimNumber     String   @unique
+  status          String   @default("SUBMITTED") // SUBMITTED | UNDER_REVIEW | INFO_REQUESTED | APPROVED | REJECTED | CLOSED
+  type            String   // COLLISION | THEFT | VANDALISM | GLASS | FIRE | NATURAL_DISASTER | BODILY_INJURY | OTHER
+  description     String
+  incidentDate    DateTime
+  incidentLocation String
+  thirdPartyInvolved Boolean @default(false)
+  thirdPartyInfo  String?  // JSON string
+  estimatedAmount Float?
+  approvedAmount  Float?
+  fraudScore      Int?
+  fraudRisk       String?  // LOW | MODERATE | HIGH | CRITICAL
+  closureReason   String?
+
+  policyholderID  String
+  policyholder    Policyholder @relation(fields: [policyholderID], references: [id])
+
+  assignedToID    String?
+  assignedTo      User?    @relation("AssignedClaims", fields: [assignedToID], references: [id])
+
+  createdByID     String
+  createdBy       User     @relation("CreatedClaims", fields: [createdByID], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  documents          Document[]
+  analyses           AIAnalysis[]
+  comments           Comment[]
+  auditLogs          AuditLog[]
+  emailNotifications EmailNotification[]
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String
+  size      Int
+  url       String   // file path or storage URL
+
+  claimId   String
+  claim     Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model AIAnalysis {
+  id          String   @id @default(cuid())
+  type        String   // EXTRACTION | FRAUD_SCORING | ESTIMATION | LETTER_GENERATION
+  inputData   String   // JSON string
+  outputData  String   // JSON string
+  tokensUsed  Int      @default(0)
+  durationMs  Int      @default(0)
+  model       String   @default("claude-sonnet-4-6")
+
+  claimId     String
+  claim       Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  isInternal Boolean @default(true)
+
+  claimId   String
+  claim     Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // CLAIM_CREATED | CLAIM_UPDATED | STATUS_CHANGED | AI_ANALYSIS_RUN | DOCUMENT_UPLOADED | COMMENT_ADDED | USER_CREATED | USER_UPDATED
+  entityType String  // CLAIM | USER | DOCUMENT | COMMENT
+  entityId  String
+  before    String?  // JSON string of previous state
+  after     String?  // JSON string of new state
+  metadata  String?  // Additional context JSON
+
+  claimId   String?
+  claim     Claim?   @relation(fields: [claimId], references: [id])
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model EmailNotification {
+  id        String    @id @default(cuid())
+  claimId   String
+  claim     Claim     @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  to        String
+  subject   String
+  body      String
+  sentAt    DateTime?
+  error     String?
+  createdAt DateTime  @default(now())
+}

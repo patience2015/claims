@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(claude-developer-platform)",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" npx prisma:*)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" npx ts-node:*)",
+      "Bash(npm run:*)",
+      "Bash(xargs basename:*)",
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)",
+      "Bash(python:*)",
+      "Bash(rm:*)",
+      "Bash(npx playwright:*)",
+      "Bash(netstat:*)",
+      "Bash(tasklist:*)",
+      "Bash(powershell Get-Process -Id 2636,17972,28604,25136,30552,28472,3428,28896,2292,36676 -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,MainWindowTitle:*)",
+      "Bash(powershell Stop-Process -Id 2636,17972,28604,25136,30552,28472,3428,28896,2292,36676 -Force -ErrorAction SilentlyContinue; Write-Host 'Done':*)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma:*)",
+      "Bash(node:*)",
+      "Bash(DATABASE_URL=\"file:./dev.db\" node:*)",
+      "Bash(grep:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(git:*)"
+    ]
+  }
+}
