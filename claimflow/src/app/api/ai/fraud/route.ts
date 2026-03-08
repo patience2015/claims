@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       documentCount: claim.documents.length,
     };
 
-    const { result, tokensUsed, durationMs } = await analyzeFraud(claimData);
+    const { result, tokensUsed, durationMs } = await analyzeFraud(claimData, claim.id);
 
     const analysis = await prisma.aIAnalysis.create({
       data: {
