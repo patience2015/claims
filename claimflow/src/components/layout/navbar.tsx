@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -6,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, FileText, Shield, LogOut, User } from "lucide-react";
+import { NotificationBadge } from "@/components/notifications/NotificationBadge";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 
 const NAV_ITEMS = [
   { href: "/claims", label: "Sinistres", icon: FileText, roles: ["HANDLER", "MANAGER", "ADMIN"] },
@@ -23,10 +26,15 @@ export function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const role = session?.user?.role;
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [syncedUnreadCount, setSyncedUnreadCount] = useState<number | undefined>(undefined);
 
   const visibleItems = NAV_ITEMS.filter(item =>
     role && item.roles.includes(role)
   );
+
+  const showNotifications =
+    !!session?.user && role !== "POLICYHOLDER";
 
   return (
     <nav className="border-b bg-white shadow-sm">
@@ -61,8 +69,24 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* User info + logout */}
-          <div className="flex items-center gap-4">
+          {/* Right section */}
+          <div className="flex items-center gap-2">
+            {/* Notification bell */}
+            {showNotifications && (
+              <div className="relative">
+                <NotificationBadge
+                  onClick={() => setNotifOpen((prev) => !prev)}
+                  externalCount={syncedUnreadCount}
+                />
+                <NotificationDropdown
+                  isOpen={notifOpen}
+                  onClose={() => setNotifOpen(false)}
+                  onCountChange={setSyncedUnreadCount}
+                />
+              </div>
+            )}
+
+            {/* User info + logout */}
             {session?.user && (
               <div className="flex items-center gap-3">
                 <div className="hidden sm:flex items-center gap-2">

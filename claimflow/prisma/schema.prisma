@@ -18,11 +18,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  assignedClaims     Claim[]     @relation("AssignedClaims")
-  createdClaims      Claim[]     @relation("CreatedClaims")
-  comments           Comment[]
-  auditLogs          AuditLog[]
-  policyholderProfile Policyholder? @relation("UserPolicyholder")
+  assignedClaims          Claim[]                  @relation("AssignedClaims")
+  createdClaims           Claim[]                  @relation("CreatedClaims")
+  comments                Comment[]
+  auditLogs               AuditLog[]
+  policyholderProfile     Policyholder?            @relation("UserPolicyholder")
+  notifications           Notification[]           @relation("UserNotifications")
+  notificationPreferences NotificationPreference[] @relation("UserNotificationPrefs")
 }
 
 model Policyholder {
@@ -85,6 +87,7 @@ model Claim {
   comments           Comment[]
   auditLogs          AuditLog[]
   emailNotifications EmailNotification[]
+  notifications      Notification[]      @relation("ClaimNotifications")
 }
 
 model Document {
@@ -157,4 +160,35 @@ model EmailNotification {
   sentAt    DateTime?
   error     String?
   createdAt DateTime  @default(now())
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation("UserNotifications", fields: [userId], references: [id])
+  type      String    // CLAIM_ASSIGNED | STATUS_CHANGED | FRAUD_ALERT | SLA_BREACH | DOCUMENT_UPLOADED_BY_POLICYHOLDER
+  title     String
+  body      String
+  read      Boolean   @default(false)
+  readAt    DateTime?
+  claimId   String?
+  claim     Claim?    @relation("ClaimNotifications", fields: [claimId], references: [id])
+  createdAt DateTime  @default(now())
+
+  @@index([userId, read])
+  @@index([claimId])
+  @@index([type, claimId])
+}
+
+model NotificationPreference {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation("UserNotificationPrefs", fields: [userId], references: [id])
+  type         String   // type de notification
+  emailEnabled Boolean  @default(true)
+  inAppEnabled Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, type])
 }

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { UpdateClaimSchema } from "@/lib/validations";
 import { createAuditLog } from "@/lib/audit";
+import { createNotification } from "@/lib/notification-service";
 
 const CLAIM_INCLUDE = {
   policyholder: true,
@@ -43,16 +44,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Données invalides", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const existing = await prisma.claim.findUnique({ where: { id } });
-  if (!existing) return NextResponse.json({ error: "Sinistre introuvable" }, { status: 404 });
+  const existingClaim = await prisma.claim.findUnique({ where: { id } });
+  if (!existingClaim) return NextResponse.json({ error: "Sinistre introuvable" }, { status: 404 });
 
   // Handlers can only edit their own claims
-  if (session.user.role === "HANDLER" && existing.assignedToID !== session.user.id && existing.createdByID !== session.user.id) {
+  if (session.user.role === "HANDLER" && existingClaim.assignedToID !== session.user.id && existingClaim.createdByID !== session.user.id) {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
 
   const { thirdPartyInfo, ...updateData } = parsed.data;
-  const claim = await prisma.claim.update({
+  // Raw body for checking fields outside UpdateClaimSchema (assignedToID, status)
+  const rawBody = body as Record<string, unknown>;
+  const updatedClaim = await prisma.claim.update({
     where: { id },
     data: {
       ...updateData,
@@ -64,14 +67,50 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   await createAuditLog({
     action: "CLAIM_UPDATED",
     entityType: "CLAIM",
-    entityId: claim.id,
-    before: existing,
+    entityId: updatedClaim.id,
+    before: existingClaim,
     after: updateData,
-    claimId: claim.id,
+    claimId: updatedClaim.id,
     userId: session.user.id,
   });
 
-  return NextResponse.json({ data: claim });
+  // Notification in-app gestionnaire assigné
+  const newAssignedToID = typeof rawBody.assignedToID === "string" ? rawBody.assignedToID : null;
+  if (newAssignedToID && newAssignedToID !== existingClaim.assignedToID) {
+    void createNotification({
+      userId: newAssignedToID,
+      type: "CLAIM_ASSIGNED",
+      title: `Sinistre assigné — ${existingClaim.claimNumber}`,
+      body: `Le sinistre ${existingClaim.claimNumber} vous a été assigné.`,
+      claimId: existingClaim.id,
+    }).catch(console.error);
+  }
+  // Notification changement statut
+  const newStatus = typeof rawBody.status === "string" ? rawBody.status : null;
+  if (newStatus && newStatus !== existingClaim.status && existingClaim.assignedToID) {
+    void createNotification({
+      userId: existingClaim.assignedToID,
+      type: "STATUS_CHANGED",
+      title: `Statut modifié — ${existingClaim.claimNumber}`,
+      body: `Le sinistre ${existingClaim.claimNumber} est passé à ${newStatus}.`,
+      claimId: existingClaim.id,
+    }).catch(console.error);
+  }
+  // Notification fraude élevée
+  if (updatedClaim.fraudScore && updatedClaim.fraudScore > 70) {
+    const managers = await prisma.user.findMany({ where: { role: { in: ["MANAGER", "ADMIN"] }, active: true }, select: { id: true } });
+    for (const mgr of managers) {
+      void createNotification({
+        userId: mgr.id,
+        type: "FRAUD_ALERT",
+        title: `Alerte fraude — ${existingClaim.claimNumber}`,
+        body: `Score de fraude élevé (${updatedClaim.fraudScore}/100) détecté sur ${existingClaim.claimNumber}.`,
+        claimId: existingClaim.id,
+      }).catch(console.error);
+    }
+  }
+
+  return NextResponse.json({ data: updatedClaim });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

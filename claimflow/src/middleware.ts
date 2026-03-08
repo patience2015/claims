@@ -17,6 +17,7 @@ const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
   "/api/comments": ["HANDLER", "MANAGER", "ADMIN"],
   "/api/ai": ["HANDLER", "MANAGER", "ADMIN"],
   "/api/dashboard": ["MANAGER", "ADMIN"],
+  "/api/notifications": ["HANDLER", "MANAGER", "ADMIN"],
   "/portail/mes-sinistres": ["POLICYHOLDER"],
   "/api/portail": ["POLICYHOLDER"],
 };
@@ -28,7 +29,8 @@ export default auth(function middleware(req) {
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/portail/login") ||
-    pathname.startsWith("/api/auth")
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/notifications/check-sla")
   ) {
     // If already logged in, redirect to appropriate dashboard
     if (req.auth && (pathname === "/login" || pathname === "/portail/login")) {

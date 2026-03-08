@@ -68,6 +68,19 @@ Ordre d'implémentation recommandé (quoi faire en premier pour débloquer le re
 - [ ] Audit logs complets sur toutes les mutations
 - [ ] TypeScript strict (zéro `any`)
 - [ ] Zod sur 100% des entrées API
+- [ ] Documentation rétro-spec à jour (`docs/features/<slug>/architecture.md`)
+
+### 7. Documentation rétro-spec ⚠️ OBLIGATOIRE
+Créer ou mettre à jour `docs/features/<feature-slug>/architecture.md` avec :
+- Arborescence complète des fichiers créés / modifiés
+- Tous les contrats API (method, auth, input, output, errors, audit)
+- Schéma Prisma des modèles ajoutés / modifiés
+- Graphe de dépendances (ordre d'implémentation)
+- Tâches par équipe avec cases cochées selon l'état réel
+- DoD avec cases cochées
+
+Le slug doit correspondre à celui utilisé par l'agent `/ba` (ex: `notifications-alertes`, `dashboard-equipe`).
+Si le dossier n'existe pas encore, le créer. Si `ba-specs.md` est absent, le signaler en commentaire en haut du fichier.
 
 ---
 

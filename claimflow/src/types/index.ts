@@ -42,7 +42,53 @@ export type AuditAction =
   | "CLAIM_DELETED"
   | "CLAIM_ACCEPTED"
   | "CLAIM_REJECTED_BY_POLICYHOLDER"
+  | "DOCUMENT_UPLOADED_BY_POLICYHOLDER"
+  | "NOTIFICATION_READ"
+  | "NOTIFICATION_PREFERENCES_UPDATED"
+  | "FRAUD_ALERT_SENT"
+  | "SLA_BREACH_DETECTED";
+
+// Notification types
+export type NotificationType =
+  | "CLAIM_ASSIGNED"
+  | "STATUS_CHANGED"
+  | "FRAUD_ALERT"
+  | "SLA_BREACH"
   | "DOCUMENT_UPLOADED_BY_POLICYHOLDER";
+
+export type NotificationStatus = "UNREAD" | "READ";
+
+export type NotificationPriority = "LOW" | "NORMAL" | "HIGH" | "CRITICAL";
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  status: NotificationStatus;
+  priority: NotificationPriority;
+  title: string;
+  message: string;
+  metadata: string | null;
+  readAt: string | null;
+  archivedAt: string | null;
+  userId: string;
+  claimId: string | null;
+  claim: { id: string; claimNumber: string; status: string } | null;
+  emailSent: boolean;
+  emailSentAt: string | null;
+  emailError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationPreferenceItem {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export type FraudRisk = "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
 

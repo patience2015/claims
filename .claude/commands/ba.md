@@ -65,6 +65,13 @@ Décrire le parcours utilisateur étape par étape (du déclencheur au résultat
 ### 7. Résumé Markdown lisible
 Synthèse en prose pour les parties prenantes non techniques.
 
+### 8. Documentation rétro-spec ⚠️ OBLIGATOIRE
+Créer ou mettre à jour le fichier `docs/features/<feature-slug>/ba-specs.md` avec l'intégralité des livrables ci-dessus (règles métier, Gherkin, edge cases, flux métier, impacts données, JSON structuré, résumé).
+
+- Utiliser le slug kebab-case du nom de la feature comme nom de dossier (ex: `portail-assure`, `notifications-alertes`, `dashboard-equipe`)
+- Si le fichier existe déjà, l'**enrichir** (ne pas écraser) en ajoutant une section versionée
+- Ce fichier est la source de vérité fonctionnelle pour l'onboarding, les audits et les tests de régression
+
 ---
 
 **Handover** → Passe les specs JSON à l'Agent `/architect`
