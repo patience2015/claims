@@ -255,6 +255,35 @@ export interface LetterResult {
 }
 
 // Dashboard types
+export interface TeamMemberStats {
+  userId: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  stats: {
+    total: number;
+    pending: number;
+    slaBreached: number;
+    avgProcessingDays: number;
+    approvalRate: number;
+  };
+}
+
+export interface SlaOverdueClaim {
+  id: string;
+  claimNumber: string;
+  assignedTo: UserSummary | null;
+  updatedAt: string;
+  daysSinceUpdate: number;
+  policyholder: Pick<PolicyholderSummary, "id" | "firstName" | "lastName" | "email">;
+}
+
+export interface SlaReport {
+  overdue: SlaOverdueClaim[];
+  atRisk: SlaOverdueClaim[];
+  healthyCount: number;
+}
+
 export interface DashboardStats {
   totalClaims: number;
   claimsByStatus: Record<ClaimStatus, number>;

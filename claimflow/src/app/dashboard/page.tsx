@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { TeamDashboard } from "@/components/dashboard/TeamDashboard";
 import { Select } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +13,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { FileText, AlertTriangle, TrendingUp, Clock } from "lucide-react";
+import { FileText, AlertTriangle, TrendingUp, Clock, Users } from "lucide-react";
 
 const PERIOD_OPTIONS = [
   { value: "7d", label: "7 derniers jours" },
@@ -21,8 +23,13 @@ const PERIOD_OPTIONS = [
 
 const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
 
+type Tab = "overview" | "team";
+
 export default function DashboardPage() {
+  const { data: session } = useSession();
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [period, setPeriod] = useState("30d");
+  const canViewTeam = session?.user?.role === "MANAGER" || session?.user?.role === "ADMIN";
   const [stats, setStats] = useState<Record<string, unknown> | null>(null);
   const [charts, setCharts] = useState<{
     timeline: { date: string; count: number; amount: number }[];
@@ -56,12 +63,37 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-500 text-sm mt-1">Vue d&apos;ensemble de l&apos;activité sinistres</p>
           </div>
-          <Select options={PERIOD_OPTIONS} value={period} onChange={e => setPeriod(e.target.value)} className="w-48" placeholder="Période" />
+          {activeTab === "overview" && (
+            <Select options={PERIOD_OPTIONS} value={period} onChange={e => setPeriod(e.target.value)} className="w-48" placeholder="Période" />
+          )}
         </div>
 
-        {loading ? (
+        {/* Tabs */}
+        {canViewTeam && (
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
+            {([
+              { id: "overview", label: "Vue globale", icon: FileText },
+              { id: "team", label: "Équipe & SLA", icon: Users },
+            ] as { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[]).map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "team" && <TeamDashboard />}
+
+        {activeTab === "overview" && loading ? (
           <div className="flex justify-center py-12"><Spinner size="lg" className="text-blue-600" /></div>
-        ) : (
+        ) : activeTab === "overview" && (
           <>
             {/* KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -177,3 +177,12 @@ export const DashboardPeriodSchema = z.object({
     ])
     .optional(),
 });
+
+export const TeamDashboardQuerySchema = z.object({
+  period: z.enum(["7d", "30d", "90d"]).default("30d"),
+});
+
+export const BulkAssignSchema = z.object({
+  claimIds: z.array(z.string()).min(1, "Au moins un sinistre requis").max(50, "Maximum 50 sinistres"),
+  assignToId: z.string().min(1, "ID utilisateur cible requis"),
+});
