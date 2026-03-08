@@ -23,7 +23,14 @@
       "Bash(DATABASE_URL=\"file:./dev.db\" node:*)",
       "Bash(grep:*)",
       "Bash(npx ts-node:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__create_project",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__stitch__list_screens",
+      "mcp__stitch__edit_screens",
+      "WebFetch(domain:contribution.usercontent.google.com)",
+      "mcp__stitch__get_screen"
     ]
   }
 }

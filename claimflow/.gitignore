@@ -1,0 +1,4 @@
+.next/
+uploads/
+node_modules/
+.env*
