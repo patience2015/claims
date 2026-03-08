@@ -23,9 +23,13 @@ import {
   letterUserPrompt,
 } from "@/lib/prompts/letter";
 
-const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+let _client: Groq | null = null;
+function getClient(): Groq {
+  if (!_client) {
+    _client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return _client;
+}
 
 const MODEL = "llama-3.3-70b-versatile";
 
@@ -61,7 +65,7 @@ export async function extractClaimInfo(
 ): Promise<{ result: ExtractionResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 2048,
     messages: [
@@ -83,7 +87,7 @@ export async function analyzeFraud(
 ): Promise<{ result: FraudAnalysisResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 1024,
     messages: [
@@ -105,7 +109,7 @@ export async function estimateIndemnization(
 ): Promise<{ result: EstimationResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 1024,
     messages: [
@@ -128,7 +132,7 @@ export async function generateLetter(
 ): Promise<{ result: LetterResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 1024,
     messages: [
