@@ -12,6 +12,7 @@ import {
   ArrowLeft, ArrowRight, CheckCircle, User, AlertTriangle,
   FileText, Search, MapPin, Calendar, X, Sparkles
 } from "lucide-react";
+import { useAddressAutocomplete, type AddressResult } from "@/hooks/use-address-autocomplete";
 
 const STEPS = [
   { id: 1, title: "Type", icon: AlertTriangle },
@@ -21,14 +22,14 @@ const STEPS = [
 ];
 
 const CLAIM_TYPE_ICONS: Record<string, { icon: string; color: string; bg: string }> = {
-  COLLISION:       { icon: "🚗", color: "text-blue-600",   bg: "bg-blue-50 border-blue-200" },
-  THEFT:           { icon: "🔓", color: "text-red-600",    bg: "bg-red-50 border-red-200" },
-  VANDALISM:       { icon: "⚠️", color: "text-orange-600", bg: "bg-orange-50 border-orange-200" },
-  GLASS:           { icon: "🪟", color: "text-cyan-600",   bg: "bg-cyan-50 border-cyan-200" },
-  FIRE:            { icon: "🔥", color: "text-red-600",    bg: "bg-red-50 border-red-200" },
-  NATURAL_DISASTER:{ icon: "⛈️", color: "text-slate-600", bg: "bg-slate-50 border-slate-200" },
-  BODILY_INJURY:   { icon: "🏥", color: "text-purple-600", bg: "bg-purple-50 border-purple-200" },
-  OTHER:           { icon: "📋", color: "text-slate-600",  bg: "bg-slate-50 border-slate-200" },
+  COLLISION: { icon: "🚗", color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
+  THEFT: { icon: "🔓", color: "text-red-600", bg: "bg-red-50 border-red-200" },
+  VANDALISM: { icon: "⚠️", color: "text-orange-600", bg: "bg-orange-50 border-orange-200" },
+  GLASS: { icon: "🪟", color: "text-cyan-600", bg: "bg-cyan-50 border-cyan-200" },
+  FIRE: { icon: "🔥", color: "text-red-600", bg: "bg-red-50 border-red-200" },
+  NATURAL_DISASTER: { icon: "⛈️", color: "text-slate-600", bg: "bg-slate-50 border-slate-200" },
+  BODILY_INJURY: { icon: "🏥", color: "text-purple-600", bg: "bg-purple-50 border-purple-200" },
+  OTHER: { icon: "📋", color: "text-slate-600", bg: "bg-slate-50 border-slate-200" },
 };
 
 const TYPE_OPTIONS = Object.entries(CLAIM_TYPE_LABELS).map(([value, label]) => ({ value, label }));
@@ -40,6 +41,11 @@ const StepThreeSchema = z.object({
   description: z.string().min(10, "Description trop courte (min 10 caractères)"),
   incidentDate: z.string().min(1, "Date requise"),
   incidentLocation: z.string().min(5, "Lieu requis"),
+  incidentCity: z.string().optional(),
+  incidentZipCode: z.string().optional(),
+  incidentCountry: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   thirdPartyInvolved: z.boolean().default(false),
   thirdPartyName: z.string().optional(),
   thirdPartyPlate: z.string().optional(),
@@ -82,8 +88,7 @@ function FieldWrap({
 }
 
 const inputCls = (error?: string) =>
-  `w-full px-4 py-2.5 rounded-xl border text-sm bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-colors ${
-    error ? "border-red-300 focus:ring-red-400" : "border-slate-200"
+  `w-full px-4 py-2.5 rounded-xl border text-sm bg-white/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-colors ${error ? "border-red-300 focus:ring-red-400" : "border-slate-200"
   }`;
 
 export default function NewClaimPage() {
@@ -99,13 +104,29 @@ export default function NewClaimPage() {
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [created, setCreated] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-
   const {
-    register, watch, setValue, formState: { errors }, trigger, getValues,
+    register,
+    setValue,
+    trigger,
+    getValues,
+    watch,
+    formState: { errors },
   } = useForm<StepThreeData>({
     resolver: zodResolver(StepThreeSchema),
     defaultValues: { thirdPartyInvolved: false },
   });
+
+  const { suggestions, loading: addressLoading, searchAddress, setSuggestions } = useAddressAutocomplete();
+
+  const handleSelectAddress = (addr: AddressResult) => {
+    setValue("incidentLocation", addr.formattedAddress);
+    setValue("incidentCity", addr.city);
+    setValue("incidentZipCode", addr.zipCode);
+    setValue("incidentCountry", addr.country);
+    setValue("latitude", addr.lat);
+    setValue("longitude", addr.lng);
+    setSuggestions([]);
+  };
 
   const thirdPartyInvolved = watch("thirdPartyInvolved");
 
@@ -149,6 +170,11 @@ export default function NewClaimPage() {
           description: data.description,
           incidentDate: new Date(data.incidentDate).toISOString(),
           incidentLocation: data.incidentLocation,
+          incidentCity: data.incidentCity,
+          incidentZipCode: data.incidentZipCode,
+          incidentCountry: data.incidentCountry,
+          latitude: data.latitude,
+          longitude: data.longitude,
           thirdPartyInvolved: data.thirdPartyInvolved,
           policyholderID: selectedPolicyholder.id,
           ...(data.thirdPartyInvolved && {
@@ -247,13 +273,12 @@ export default function NewClaimPage() {
             return (
               <div key={s.id} className="flex items-center flex-1 last:flex-none">
                 <div className="flex flex-col items-center gap-1.5">
-                  <div className={`relative h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all ${
-                    done
-                      ? "bg-emerald-500 text-white shadow-md shadow-emerald-200"
-                      : active
+                  <div className={`relative h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold transition-all ${done
+                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-200"
+                    : active
                       ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 ring-4 ring-indigo-100"
                       : "bg-white border-2 border-slate-200 text-slate-400"
-                  }`}>
+                    }`}>
                     {done ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                   </div>
                   <span className={`text-[11px] font-medium ${active ? "text-indigo-600" : done ? "text-emerald-600" : "text-slate-400"}`}>
@@ -308,11 +333,10 @@ export default function NewClaimPage() {
                         setValue("type", value as StepThreeData["type"]);
                         setFormError(null);
                       }}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
-                        isSelected
-                          ? "border-indigo-500 bg-indigo-50 shadow-md shadow-indigo-100"
-                          : `border ${meta.bg} hover:border-indigo-300 hover:shadow-sm`
-                      }`}
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${isSelected
+                        ? "border-indigo-500 bg-indigo-50 shadow-md shadow-indigo-100"
+                        : `border ${meta.bg} hover:border-indigo-300 hover:shadow-sm`
+                        }`}
                     >
                       <span className="text-2xl">{meta.icon}</span>
                       <span className={`text-sm font-semibold ${isSelected ? "text-indigo-700" : "text-slate-700"}`}>{label}</span>
@@ -350,12 +374,41 @@ export default function NewClaimPage() {
                   </FieldWrap>
                   <FieldWrap label="Lieu" error={errors.incidentLocation?.message} required>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none z-10" />
                       <input
                         {...register("incidentLocation")}
-                        placeholder="Adresse ou description"
+                        autoComplete="off"
+                        onChange={(e) => {
+                          register("incidentLocation").onChange(e);
+                          searchAddress(e.target.value);
+                        }}
+                        placeholder="Saisissez l'adresse de l'incident..."
                         className={`${inputCls(errors.incidentLocation?.message)} pl-10`}
                       />
+                      {addressLoading && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <Spinner size="sm" className="text-indigo-400" />
+                        </div>
+                      )}
+
+                      {suggestions.length > 0 && (
+                        <div className="absolute z-50 left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                          {suggestions.map((s, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => handleSelectAddress(s)}
+                              className="w-full text-left px-4 py-3 hover:bg-indigo-50 transition-colors flex items-start gap-3 border-b border-slate-50 last:border-0"
+                            >
+                              <MapPin className="h-4 w-4 text-indigo-400 mt-0.5 shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-slate-800">{s.formattedAddress}</p>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-wider">{s.city ? `${s.city}, ` : ""}{s.country}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </FieldWrap>
                 </div>

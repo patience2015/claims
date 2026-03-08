@@ -13,6 +13,17 @@ $ARGUMENTS
 
 À partir du plan Architecte fourni, génère dans cet ordre :
 
+### 0. Vérification écrans Stitch (si feature avec UI)
+
+Avant de commencer, vérifier si des écrans Stitch ont été générés à l'étape `/design` :
+```
+mcp__stitch__list_screens({ projectId: "projects/4597385239557674039" })
+```
+Si des écrans existent pour cette feature, noter les screen IDs pour les transmettre au `/frontend`.
+Les contrats API doivent correspondre exactement aux données affichées dans les écrans Stitch.
+
+---
+
 ### 1. Prisma (si nouveau modèle)
 - Modifier `prisma/schema.prisma`
 - Exécuter : `DATABASE_URL="file:./dev.db" npx prisma migrate dev --name <description>`
@@ -62,4 +73,4 @@ Règles :
 
 ---
 
-**Handover** → `/qa` pour validation + `/frontend` pour consommation API
+**Handover** → `/qa` pour validation + `/frontend` pour consommation API (avec screen IDs Stitch)

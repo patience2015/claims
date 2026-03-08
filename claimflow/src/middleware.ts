@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getDefaultRedirect } from "@/lib/permissions";
 import { UserRole } from "@/types";
 
+// Important: Init NextAuth with only the Edge-compatible config
 const { auth } = NextAuth(authConfig);
 
 // Protected routes and their minimum required roles

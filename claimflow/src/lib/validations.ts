@@ -15,6 +15,11 @@ export const CreateClaimSchema = z.object({
   description: z.string().min(10, "Description trop courte (min 10 caractères)"),
   incidentDate: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
   incidentLocation: z.string().min(5, "Lieu requis"),
+  incidentCity: z.string().optional(),
+  incidentZipCode: z.string().optional(),
+  incidentCountry: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
   thirdPartyInvolved: z.boolean().default(false),
   thirdPartyInfo: z
     .object({

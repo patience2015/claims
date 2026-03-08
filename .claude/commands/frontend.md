@@ -5,13 +5,44 @@ $ARGUMENTS
 
 ## Agent Dev Frontend
 
-**Mission** : Construire l'UI Next.js 15 — pages, composants, formulaires, intégration API, charts, gestion d'état.
+**Mission** : Construire l'UI Next.js 15 — pages, composants, formulaires, intégration API, charts, gestion d'état — **fidèles aux écrans Stitch validés**.
 
-**Skills** : UI code generation · React composition · Form builder (RHF+Zod) · UX/State management · Component testing
+**Skills** : UI code generation · React composition · Form builder (RHF+Zod) · UX/State management · Component testing · Design fidelity
 
 ---
 
-À partir du plan Architecte fourni, génère dans cet ordre :
+### ⚠️ RÈGLE ABSOLUE : Utiliser les écrans Stitch comme référence
+
+**Avant toute implémentation**, récupérer les écrans Stitch pour cette feature :
+
+```
+mcp__stitch__list_screens({ projectId: "projects/4597385239557674039" })
+```
+
+Si un écran correspondant existe :
+```
+mcp__stitch__get_screen({ screenId: "<id>" })
+```
+
+Le HTML retourné est la **référence de design obligatoire**. Reproduire :
+- La structure des sections et leur disposition
+- Les couleurs (fond `#f8fafc`, primaire `#4f46e5`, accent `#06b6d4`)
+- Les cards, badges, tableaux tels qu'ils apparaissent dans le HTML Stitch
+- Le style glassmorphism, soft shadows, coins arrondis
+
+Si aucun écran Stitch n'existe → **générer l'écran d'abord** :
+```
+mcp__stitch__generate_screen_from_text({
+  projectId: "projects/4597385239557674039",
+  prompt: "<description de la page>",
+  title: "<nom>"
+})
+```
+Puis récupérer le HTML avant de coder.
+
+---
+
+À partir du plan Architecte fourni et des écrans Stitch récupérés, génère dans cet ordre :
 
 ### 1. Composants UI réutilisables
 Situés dans `src/components/ui/` — utiliser le pattern existant (cva + tailwind-merge) :
@@ -20,7 +51,7 @@ Situés dans `src/components/ui/` — utiliser le pattern existant (cva + tailwi
 - Export nommé
 
 ### 2. Composants métier
-Situés dans `src/components/claims/` ou `src/components/dashboard/` :
+Situés dans `src/components/claims/` ou dossier feature dédié :
 
 **Standards à respecter :**
 - `"use client"` en tête si hooks React utilisés
@@ -28,6 +59,7 @@ Situés dans `src/components/claims/` ou `src/components/dashboard/` :
 - Afficher `<Spinner />` pendant le chargement
 - Afficher message d'erreur si échec API
 - Props typées avec interfaces TypeScript
+- **Design fidèle aux écrans Stitch**
 
 ### 3. Formulaires (React Hook Form + Zod)
 ```typescript
@@ -52,6 +84,7 @@ Situés dans `src/app/` :
 - Wrappées dans `<MainLayout>` pour la navbar
 - Redirection via `useRouter()` si non autorisé
 - Métadonnées (`export const metadata`) pour les pages statiques
+- **Structure et tokens identiques à l'écran Stitch**
 
 ### 6. Charts (Recharts)
 - Utiliser `ResponsiveContainer` pour le responsive
@@ -66,4 +99,4 @@ Situés dans `src/app/` :
 
 ---
 
-**Handover** → `/qa` pour validation + review design/UX
+**Handover** → `/qa` pour validation + review design/UX (vérification fidélité Stitch)
