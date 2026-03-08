@@ -186,3 +186,21 @@ export const BulkAssignSchema = z.object({
   claimIds: z.array(z.string()).min(1, "Au moins un sinistre requis").max(50, "Maximum 50 sinistres"),
   assignToId: z.string().min(1, "ID utilisateur cible requis"),
 });
+
+// Fraud Network schemas
+export const FraudNetworkQuerySchema = z.object({
+  status: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z.enum(["score_desc", "score_asc", "date_desc", "date_asc"]).default("score_desc"),
+});
+
+export const FraudNetworkActionSchema = z.object({
+  action: z.enum(["DISMISS", "ESCALATE"]),
+  reason: z.string().min(10).max(500).optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export const RecomputeSchema = z.object({
+  scope: z.enum(["FULL", "INCREMENTAL"]).default("INCREMENTAL"),
+});

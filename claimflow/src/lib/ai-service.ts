@@ -22,6 +22,7 @@ import {
   LETTER_SYSTEM_PROMPT,
   letterUserPrompt,
 } from "@/lib/prompts/letter";
+import { getNetworkScoreForClaim } from "@/lib/fraud-network-service";
 
 let _client: Groq | null = null;
 function getClient(): Groq {
@@ -83,16 +84,29 @@ export async function extractClaimInfo(
 
 // 2. Fraud Scoring
 export async function analyzeFraud(
-  claimData: Record<string, unknown>
+  claimData: Record<string, unknown>,
+  claimId?: string
 ): Promise<{ result: FraudAnalysisResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
+
+  // Inject network risk context if claimId is provided
+  const enrichedClaimData = { ...claimData };
+  if (claimId) {
+    try {
+      const { networkScore, networkRisk } = await getNetworkScoreForClaim(claimId);
+      enrichedClaimData.networkScore = networkScore;
+      enrichedClaimData.networkRisk = networkRisk;
+    } catch {
+      // Non-blocking: if network score lookup fails, proceed without it
+    }
+  }
 
   const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 1024,
     messages: [
       { role: "system", content: FRAUD_SYSTEM_PROMPT },
-      { role: "user", content: fraudUserPrompt(claimData) },
+      { role: "user", content: fraudUserPrompt(enrichedClaimData) },
     ],
   });
 

@@ -90,6 +90,18 @@ const TYPE_CONFIG: Record<NotificationType, IconConfig> = {
     bgClass: "bg-purple-50",
     label: "Document reçu",
   },
+  NETWORK_FRAUD_ALERT: {
+    Icon: AlertTriangle,
+    iconClass: "text-red-600",
+    bgClass: "bg-red-50",
+    label: "Réseau fraude",
+  },
+  NETWORK_ESCALATED: {
+    Icon: AlertTriangle,
+    iconClass: "text-red-700",
+    bgClass: "bg-red-100",
+    label: "Réseau escaladé",
+  },
 };
 
 type StatusFilter = "ALL" | "UNREAD" | "READ";

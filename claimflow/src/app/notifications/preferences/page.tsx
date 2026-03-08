@@ -62,6 +62,16 @@ const TYPE_META: Record<NotificationType, { label: string; description: string; 
     description: "Quand un assuré dépose un document",
     icon: FileText,
   },
+  NETWORK_FRAUD_ALERT: {
+    label: "Réseau fraude",
+    description: "Quand un cluster frauduleux est détecté",
+    icon: AlertTriangle,
+  },
+  NETWORK_ESCALATED: {
+    label: "Réseau escaladé",
+    description: "Quand un réseau suspect est escaladé en investigation",
+    icon: AlertTriangle,
+  },
 };
 
 const NOTIFICATION_TYPES: NotificationType[] = [

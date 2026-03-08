@@ -5,7 +5,9 @@ export type NotificationType =
   | "STATUS_CHANGED"
   | "FRAUD_ALERT"
   | "SLA_BREACH"
-  | "DOCUMENT_UPLOADED_BY_POLICYHOLDER";
+  | "DOCUMENT_UPLOADED_BY_POLICYHOLDER"
+  | "NETWORK_FRAUD_ALERT"
+  | "NETWORK_ESCALATED";
 
 interface CreateNotificationInput {
   userId: string;
