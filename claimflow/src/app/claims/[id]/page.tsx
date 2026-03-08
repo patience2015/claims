@@ -16,7 +16,7 @@ import {
   ClaimStatus,
   ClaimWithRelations,
 } from "@/types";
-import { formatDate, formatDateTime, formatCurrency, getStatusColor } from "@/lib/utils";
+import { formatDate, formatDateTime, formatCurrency } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import { FileUpload, type FileWithStatus } from "@/components/ui/FileUpload";
 import {

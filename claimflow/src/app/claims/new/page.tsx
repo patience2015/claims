@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -9,7 +9,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { FileUpload, type FileWithStatus } from "@/components/ui/FileUpload";
 import { CLAIM_TYPE_LABELS } from "@/types";
 import {
-  ArrowLeft, ArrowRight, CheckCircle, User, Car, AlertTriangle,
+  ArrowLeft, ArrowRight, CheckCircle, User, AlertTriangle,
   FileText, Search, MapPin, Calendar, X, Sparkles
 } from "lucide-react";
 
@@ -101,7 +101,7 @@ export default function NewClaimPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
-    register, watch, control, setValue, formState: { errors }, trigger, getValues,
+    register, watch, setValue, formState: { errors }, trigger, getValues,
   } = useForm<StepThreeData>({
     resolver: zodResolver(StepThreeSchema),
     defaultValues: { thirdPartyInvolved: false },

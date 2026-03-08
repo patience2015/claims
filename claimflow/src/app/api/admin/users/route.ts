@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { CreateUserSchema, UpdateUserSchema } from "@/lib/validations";
+import { CreateUserSchema } from "@/lib/validations";
 import { createAuditLog } from "@/lib/audit";
 import bcrypt from "bcryptjs";
 
