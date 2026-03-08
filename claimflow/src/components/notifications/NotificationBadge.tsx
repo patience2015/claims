@@ -23,8 +23,8 @@ export function NotificationBadge({ onClick, externalCount }: NotificationBadgeP
       try {
         const res = await fetch("/api/notifications/unread-count");
         if (res.ok) {
-          const data = (await res.json()) as { unreadCount: number };
-          setInternalCount(data.unreadCount ?? 0);
+          const data = (await res.json()) as { count: number };
+          setInternalCount(data.count ?? 0);
         }
       } catch {
         // silencieux

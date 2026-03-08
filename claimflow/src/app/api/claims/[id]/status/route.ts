@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { ClaimStatusSchema } from "@/lib/validations";
 import { createAuditLog } from "@/lib/audit";
 import { isValidTransition } from "@/lib/claim-service";
-import { ClaimStatus } from "@/types";
+import { createNotification } from "@/lib/notification-service";
+import { sendClaimStatusEmail } from "@/lib/email-service";
+import { ClaimStatus, CLAIM_STATUS_LABELS } from "@/types";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -58,6 +60,30 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     claimId: claim.id,
     userId: session.user.id,
   });
+
+  const statusLabel = CLAIM_STATUS_LABELS[newStatus as ClaimStatus] ?? newStatus;
+
+  // Notification in-app pour le gestionnaire assigné
+  if (updated.assignedToID) {
+    await createNotification({
+      userId: updated.assignedToID,
+      type: "STATUS_CHANGED",
+      title: `Statut mis à jour — ${claim.claimNumber}`,
+      body: `Le sinistre ${claim.claimNumber} est maintenant "${statusLabel}".`,
+      claimId: claim.id,
+    });
+  }
+
+  // Email assuré pour les changements de statut significatifs
+  if (["APPROVED", "REJECTED", "INFO_REQUESTED"].includes(newStatus)) {
+    await sendClaimStatusEmail({
+      claimId: claim.id,
+      claimNumber: claim.claimNumber,
+      status: newStatus,
+      policyholderEmail: updated.policyholder.email,
+      policyholderName: `${updated.policyholder.firstName} ${updated.policyholder.lastName}`,
+    });
+  }
 
   return NextResponse.json({ data: updated });
 }

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { Settings } from "lucide-react";
 import {
   AlertTriangle,
   Bell,
@@ -14,7 +15,19 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import type { NotificationItem, NotificationType } from "@/types";
+import type { NotificationType } from "@/types";
+
+// Shape returned by GET /api/notifications
+interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  read: boolean;
+  readAt: string | null;
+  claimId: string | null;
+  createdAt: string;
+}
 
 // --------------------------------------------------------------------------
 // Helpers
@@ -119,9 +132,8 @@ export default function NotificationsPage() {
   const buildQuery = useCallback(
     (cursor?: string): string => {
       const params = new URLSearchParams({ limit: "20" });
-      if (filter !== "ALL") {
-        params.set("status", filter);
-      }
+      if (filter === "UNREAD") params.set("read", "false");
+      else if (filter === "READ") params.set("read", "true");
       if (cursor) {
         params.set("cursor", cursor);
       }
@@ -141,11 +153,11 @@ export default function NotificationsPage() {
         return;
       }
       const data = (await res.json()) as {
-        notifications: NotificationItem[];
+        data: NotificationItem[];
         unreadCount: number;
         nextCursor: string | null;
       };
-      setNotifications(data.notifications ?? []);
+      setNotifications(data.data ?? []);
       setUnreadCount(data.unreadCount ?? 0);
       setNextCursor(data.nextCursor ?? null);
     } catch {
@@ -170,11 +182,11 @@ export default function NotificationsPage() {
       );
       if (!res.ok) return;
       const data = (await res.json()) as {
-        notifications: NotificationItem[];
+        data: NotificationItem[];
         unreadCount: number;
         nextCursor: string | null;
       };
-      setNotifications((prev) => [...prev, ...(data.notifications ?? [])]);
+      setNotifications((prev) => [...prev, ...(data.data ?? [])]);
       setNextCursor(data.nextCursor ?? null);
     } catch {
       // silencieux
@@ -184,7 +196,7 @@ export default function NotificationsPage() {
   };
 
   const handleMarkRead = async (notif: NotificationItem) => {
-    if (notif.status === "READ") return;
+    if (notif.read) return;
     try {
       const res = await fetch(`/api/notifications/${notif.id}/read`, {
         method: "PATCH",
@@ -195,7 +207,7 @@ export default function NotificationsPage() {
         setNotifications((prev) =>
           prev.map((n) =>
             n.id === notif.id
-              ? { ...n, status: "READ" as const, readAt: new Date().toISOString() }
+              ? { ...n, read: true, readAt: new Date().toISOString() }
               : n
           )
         );
@@ -217,7 +229,7 @@ export default function NotificationsPage() {
         setNotifications((prev) =>
           prev.map((n) => ({
             ...n,
-            status: "READ" as const,
+            read: true,
             readAt: n.readAt ?? new Date().toISOString(),
           }))
         );
@@ -250,6 +262,13 @@ export default function NotificationsPage() {
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Bell className="h-6 w-6 text-blue-600" />
             Mes notifications
+            <Link
+              href="/notifications/preferences"
+              className="ml-1 p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              title="Préférences de notifications"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
           </h1>
           {unreadCount > 0 && (
             <p className="text-sm text-gray-500 mt-1">
@@ -316,7 +335,7 @@ export default function NotificationsPage() {
           {notifications.map((notif) => {
             const config = TYPE_CONFIG[notif.type];
             const { Icon } = config;
-            const isUnread = notif.status === "UNREAD";
+            const isUnread = !notif.read;
 
             const cardContent = (
               <div
@@ -347,7 +366,7 @@ export default function NotificationsPage() {
                       <span className="shrink-0 h-2 w-2 mt-1.5 rounded-full bg-blue-500" />
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">{notif.message}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">{notif.body}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-xs text-gray-400">
                       {formatRelativeTime(notif.createdAt)}

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/audit";
+import { createNotification } from "@/lib/notification-service";
 import { VALID_TRANSITIONS, ClaimStatus } from "@/types";
 
 // Generate claim number: CLM-YYYY-NNNNN
@@ -77,6 +78,11 @@ export async function checkFraudEscalation(
     });
 
     if (manager) {
+      const claim = await prisma.claim.findUnique({
+        where: { id: claimId },
+        select: { claimNumber: true },
+      });
+
       await prisma.claim.update({
         where: { id: claimId },
         data: {
@@ -93,6 +99,14 @@ export async function checkFraudEscalation(
         metadata: { fraudScore, escalationThreshold: ESCALATION_THRESHOLD, assignedTo: manager.name },
         claimId,
         userId,
+      });
+
+      await createNotification({
+        userId: manager.id,
+        type: "FRAUD_ALERT",
+        title: `Alerte fraude — ${claim?.claimNumber ?? claimId}`,
+        body: `Score de fraude critique (${fraudScore}/100) détecté. Le sinistre vous a été automatiquement escaladé.`,
+        claimId,
       });
 
       return true;

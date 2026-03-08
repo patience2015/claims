@@ -12,7 +12,19 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import type { NotificationItem, NotificationType } from "@/types";
+import type { NotificationType } from "@/types";
+
+// Shape returned by GET /api/notifications
+interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  read: boolean;
+  readAt: string | null;
+  claimId: string | null;
+  createdAt: string;
+}
 
 // --------------------------------------------------------------------------
 // Helpers
@@ -121,11 +133,11 @@ export function NotificationDropdown({
         return;
       }
       const data = (await res.json()) as {
-        notifications: NotificationItem[];
+        data: NotificationItem[];
         unreadCount: number;
         nextCursor: string | null;
       };
-      setNotifications(data.notifications ?? []);
+      setNotifications(data.data ?? []);
       onCountChange(data.unreadCount ?? 0);
     } catch {
       setError("Erreur réseau.");
@@ -142,7 +154,7 @@ export function NotificationDropdown({
 
   // Marquer une notification comme lue
   const handleMarkRead = async (notif: NotificationItem) => {
-    if (notif.status === "READ") {
+    if (notif.read) {
       if (notif.claimId) {
         onClose();
       }
@@ -159,12 +171,12 @@ export function NotificationDropdown({
         setNotifications((prev) =>
           prev.map((n) =>
             n.id === notif.id
-              ? { ...n, status: "READ" as const, readAt: new Date().toISOString() }
+              ? { ...n, read: true, readAt: new Date().toISOString() }
               : n
           )
         );
         const newUnread = notifications.filter(
-          (n) => n.status === "UNREAD" && n.id !== notif.id
+          (n) => !n.read && n.id !== notif.id
         ).length;
         onCountChange(newUnread);
       }
@@ -189,7 +201,7 @@ export function NotificationDropdown({
         setNotifications((prev) =>
           prev.map((n) => ({
             ...n,
-            status: "READ" as const,
+            read: true,
             readAt: n.readAt ?? new Date().toISOString(),
           }))
         );
@@ -204,7 +216,7 @@ export function NotificationDropdown({
 
   if (!isOpen) return null;
 
-  const unreadCount = notifications.filter((n) => n.status === "UNREAD").length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <div
@@ -276,7 +288,7 @@ export function NotificationDropdown({
           notifications.map((notif) => {
             const config = TYPE_CONFIG[notif.type];
             const { Icon } = config;
-            const isUnread = notif.status === "UNREAD";
+            const isUnread = !notif.read;
             // Contenu partagé de la notification
             const innerContent = (
               <>
@@ -299,7 +311,7 @@ export function NotificationDropdown({
                     {notif.title}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
-                    {notif.message}
+                    {notif.body}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-[11px] text-gray-400">

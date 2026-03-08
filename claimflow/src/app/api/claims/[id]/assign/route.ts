@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { AssignClaimSchema } from "@/lib/validations";
 import { createAuditLog } from "@/lib/audit";
+import { createNotification } from "@/lib/notification-service";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -45,6 +46,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     after: { assignedToID: parsed.data.userId, assignedTo: targetUser.name },
     claimId: claim.id,
     userId: session.user.id,
+  });
+
+  await createNotification({
+    userId: parsed.data.userId,
+    type: "CLAIM_ASSIGNED",
+    title: `Sinistre assigné — ${claim.claimNumber}`,
+    body: `Le sinistre ${claim.claimNumber} vous a été assigné par ${session.user.name}.`,
+    claimId: claim.id,
   });
 
   return NextResponse.json({ data: updated });
