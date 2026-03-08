@@ -317,11 +317,6 @@ export function NotificationDropdown({
                     <span className="text-[11px] text-gray-400">
                       {formatRelativeTime(notif.createdAt)}
                     </span>
-                    {notif.claim && (
-                      <span className="text-[11px] text-blue-500 font-medium">
-                        {notif.claim.claimNumber}
-                      </span>
-                    )}
                   </div>
                 </div>
 
