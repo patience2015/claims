@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "stitch": {
+      "command": "npx",
+      "args": ["@_davideast/stitch-mcp", "proxy"],
+      "env": {
+        "STITCH_ACCESS_TOKEN": "AQ.Ab8RN6JXoeBtZ3YQq1gNF5jXw5nNTGLgeAs1AJMAaftBOpaNlg"
+      }
+    }
+  }
+}

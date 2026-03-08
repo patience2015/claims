@@ -1,0 +1,188 @@
+import { z } from "zod";
+
+// Claim schemas
+export const CreateClaimSchema = z.object({
+  type: z.enum([
+    "COLLISION",
+    "THEFT",
+    "VANDALISM",
+    "GLASS",
+    "FIRE",
+    "NATURAL_DISASTER",
+    "BODILY_INJURY",
+    "OTHER",
+  ]),
+  description: z.string().min(10, "Description trop courte (min 10 caractères)"),
+  incidentDate: z.string().datetime({ offset: true }).or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
+  incidentLocation: z.string().min(5, "Lieu requis"),
+  thirdPartyInvolved: z.boolean().default(false),
+  thirdPartyInfo: z
+    .object({
+      name: z.string().optional(),
+      plate: z.string().optional(),
+      insurance: z.string().optional(),
+      contact: z.string().optional(),
+    })
+    .optional(),
+  policyholderID: z.string().cuid("ID assuré invalide"),
+});
+
+export const UpdateClaimSchema = CreateClaimSchema.partial();
+
+export const ClaimStatusSchema = z.object({
+  status: z.enum([
+    "SUBMITTED",
+    "UNDER_REVIEW",
+    "INFO_REQUESTED",
+    "APPROVED",
+    "REJECTED",
+    "CLOSED",
+  ]),
+  reason: z.string().optional(),
+  approvedAmount: z.number().positive().optional(),
+});
+
+export const AssignClaimSchema = z.object({
+  userId: z.string().cuid("ID utilisateur invalide"),
+});
+
+// Policyholder schemas
+export const CreatePolicyholderSchema = z.object({
+  firstName: z.string().min(1, "Prénom requis"),
+  lastName: z.string().min(1, "Nom requis"),
+  email: z.string().email("Email invalide"),
+  phone: z.string().min(10, "Téléphone invalide"),
+  address: z.string().min(10, "Adresse requise"),
+  vehicleMake: z.string().min(1, "Marque du véhicule requise"),
+  vehicleModel: z.string().min(1, "Modèle du véhicule requis"),
+  vehicleYear: z.number().int().min(1990).max(new Date().getFullYear() + 1),
+  vehiclePlate: z.string().min(4, "Plaque d'immatriculation invalide"),
+  vehicleVin: z.string().optional(),
+  policyNumber: z.string().min(5, "Numéro de police requis"),
+  contractStart: z.string(),
+  contractEnd: z.string(),
+  coverageType: z.enum(["THIRD_PARTY", "COMPREHENSIVE", "ALL_RISKS"]),
+});
+
+export const UpdatePolicyholderSchema = CreatePolicyholderSchema.partial();
+
+// Comment schema
+export const CreateCommentSchema = z.object({
+  content: z.string().min(1, "Commentaire vide"),
+  isInternal: z.boolean().default(true),
+});
+
+// AI schemas
+export const AIExtractSchema = z.object({
+  claimId: z.string().cuid(),
+  description: z.string().min(1),
+});
+
+export const AIFraudSchema = z.object({
+  claimId: z.string().cuid(),
+});
+
+export const AIEstimateSchema = z.object({
+  claimId: z.string().cuid(),
+});
+
+export const AILetterSchema = z.object({
+  claimId: z.string().cuid(),
+  letterType: z.enum([
+    "ACKNOWLEDGMENT",
+    "DOCUMENT_REQUEST",
+    "APPROVAL",
+    "REJECTION",
+    "INFO_REQUEST",
+  ]),
+});
+
+// User schemas (admin)
+export const CreateUserSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1),
+  password: z.string().min(8, "Mot de passe trop court (min 8 caractères)"),
+  role: z.enum(["HANDLER", "MANAGER", "ADMIN"]),
+});
+
+export const UpdateUserSchema = z.object({
+  name: z.string().min(1).optional(),
+  role: z.enum(["HANDLER", "MANAGER", "ADMIN"]).optional(),
+  active: z.boolean().optional(),
+  password: z.string().min(8).optional(),
+});
+
+// Portail assuré — décision sur un sinistre approuvé
+export const PortailDecisionSchema = z
+  .object({
+    decision: z.enum(["ACCEPT", "REJECT"]),
+    reason: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.decision === "REJECT" && (!data.reason || data.reason.length < 20)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Le motif doit contenir au moins 20 caractères",
+        path: ["reason"],
+      });
+    }
+  });
+
+// Query param schemas
+export const ClaimQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).catch(1),
+  pageSize: z.coerce.number().int().min(1).max(100).catch(20),
+  status: z
+    .enum([
+      "SUBMITTED",
+      "UNDER_REVIEW",
+      "INFO_REQUESTED",
+      "APPROVED",
+      "REJECTED",
+      "CLOSED",
+    ])
+    .optional(),
+  type: z
+    .enum([
+      "COLLISION",
+      "THEFT",
+      "VANDALISM",
+      "GLASS",
+      "FIRE",
+      "NATURAL_DISASTER",
+      "BODILY_INJURY",
+      "OTHER",
+    ])
+    .optional(),
+  search: z.string().optional(),
+  assignedToId: z.string().optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+});
+
+export const DashboardPeriodSchema = z.object({
+  period: z.enum(["7d", "30d", "90d", "custom"]).default("30d"),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  type: z
+    .enum([
+      "COLLISION",
+      "THEFT",
+      "VANDALISM",
+      "GLASS",
+      "FIRE",
+      "NATURAL_DISASTER",
+      "BODILY_INJURY",
+      "OTHER",
+    ])
+    .optional(),
+});
+
+export const TeamDashboardQuerySchema = z.object({
+  period: z.enum(["7d", "30d", "90d"]).default("30d"),
+});
+
+export const BulkAssignSchema = z.object({
+  claimIds: z.array(z.string()).min(1, "Au moins un sinistre requis").max(50, "Maximum 50 sinistres"),
+  assignToId: z.string().min(1, "ID utilisateur cible requis"),
+});

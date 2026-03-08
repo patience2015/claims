@@ -1,0 +1,463 @@
+# ClaimFlow AI — Product Requirements Document
+# Version: 1.0 | Février 2026 | Leadmind AI — Formation Claude Code
+
+---
+
+## 1. EXECUTIVE SUMMARY
+
+ClaimFlow AI est un portail web fullstack augmenté par l'intelligence artificielle, conçu pour
+transformer la gestion des sinistres automobiles. Ce POC démontre comment l'IA générative peut
+réduire le temps de traitement d'un sinistre de 80 %, améliorer la détection de fraude et
+automatiser la génération documentaire.
+
+### Chiffres clés du marché
+- Allianz (Projet Nemo) : −80 % du temps de traitement des sinistres
+- Sedgwick (Sidekick Agent) : +30 % d'efficacité des gestionnaires
+- Aviva : 82 M$ d'économies en 2024
+
+### Problèmes résolus
+- Un gestionnaire traite seulement 15–20 dossiers/jour (saisie manuelle répétitive)
+- La saisie manuelle d'un dossier prend 15–20 minutes
+- La fraude représente 5–10 % des primes collectées en Europe
+- Les délais de traitement dégradent la satisfaction client
+
+---
+
+## 2. OBJECTIFS DU PRODUIT
+
+### 2.1 Objectifs business
+
+| Objectif                        | Indicateur cible                            | Horizon    |
+|---------------------------------|---------------------------------------------|------------|
+| Réduire le temps de traitement  | 5× plus rapide (~3 min/dossier)             | Dès le POC |
+| Détecter la fraude              | Scoring automatique sur 100 % des sinistres | Dès le POC |
+| Améliorer l'expérience          | Suppression de la saisie répétitive         | Dès le POC |
+| Automatiser la documentation    | Courriers générés en < 5 secondes           | Dès le POC |
+| Capitaliser pour Leadmind AI    | POC démontrable à tout DSI d'assureur       | Post-formation |
+
+### 2.2 Objectifs pédagogiques
+
+| Compétence              | Technologie / outil                          | Exercice associé   |
+|-------------------------|----------------------------------------------|--------------------|
+| Maîtriser Claude Code   | 14 fonctionnalités (plan, agents, MCP, hooks)| Checklist J1–J5    |
+| Développer fullstack    | Next.js 15 · Prisma · SQLite · Anthropic SDK | Sprint 5 jours     |
+| Travailler en binôme    | Git collaboratif, contrats API               | Points quotidiens  |
+| Intégrer l'IA           | Prompts, parsing JSON, orchestration         | Jour 3             |
+| Assurer la qualité      | TDD · Tests E2E · Code review · Linting      | Jour 2 & 5         |
+
+---
+
+## 3. PERSONAS
+
+### Julie Martin — 32 ans — Gestionnaire sinistres
+- Traite 15–20 dossiers/jour, frustrée par la saisie répétitive
+- Veut : traiter plus vite, être alertée sur les cas suspects
+- Parcours : Login → /claims → formulaire 4 étapes → analyse IA → escalade si fraude élevée
+
+### Marc Dubois — 45 ans — Manager sinistres
+- Supervise 8 gestionnaires, manque de visibilité globale
+- Veut : piloter avec des dashboards, réduire les délais
+- Parcours : Login → /dashboard → validation dossiers escaladés → export CSV
+
+### Thomas Petit — 28 ans — Administrateur
+- Gère les comptes et la configuration système
+- Veut : administrer facilement via une interface claire
+- Parcours : Login → /admin → CRUD utilisateurs → configuration seuils
+
+---
+
+## 4. SPÉCIFICATIONS FONCTIONNELLES
+
+### Epic 1 — Authentification (Priorité : HAUTE)
+
+US-1.1 : Se connecter avec email/mot de passe
+  AC : Redirection selon rôle, session JWT persistante
+
+US-1.2 : Voir mon profil et mon rôle
+  AC : Nom, email, rôle affichés dans le header
+
+US-1.3 : Être redirigé selon mon rôle
+  AC : handler → /claims | manager → /dashboard | admin → /admin
+
+---
+
+### Epic 2 — Déclaration de sinistre (Priorité : HAUTE)
+
+US-2.1 : Remplir un formulaire multi-étapes
+  AC : 4 étapes : assuré, véhicule, faits, documents
+
+US-2.2 : Uploader des photos et documents
+  AC : Multi-fichiers, preview, max 10 Mo/fichier
+
+US-2.3 : Recevoir un numéro de sinistre automatique
+  AC : Format CLM-YYYY-NNNNN généré à la soumission
+
+US-2.4 : Sauvegarder en brouillon
+  AC : Statut 'draft', reprise possible à tout moment
+
+---
+
+### Epic 3 — Analyse IA (Priorité : HAUTE)
+
+US-3.1 : Lancer l'analyse IA en 1 clic
+  AC : Bouton 'Analyser', spinner, résultats en < 10 s
+
+US-3.2 : Voir les données extraites automatiquement
+  AC : Champs pré-remplis depuis la description libre
+
+US-3.3 : Voir le score de fraude avec indicateurs visuels
+  AC : Jauge 0–100, couleurs vert/orange/rouge/rouge foncé
+
+US-3.4 : Voir l'estimation du montant d'indemnisation
+  AC : Fourchette min/max/probable avec ventilation par poste
+
+US-3.5 : Générer un courrier automatique
+  AC : 5 types disponibles, aperçu, copie en 1 clic
+
+---
+
+### Epic 4 — Workflow (Priorité : HAUTE)
+
+US-4.1 : Voir la liste des sinistres avec filtres
+  AC : Filtres statut, type, date, recherche texte libre
+
+US-4.2 : Changer le statut d'un sinistre
+  AC : Transitions autorisées selon état courant uniquement
+
+US-4.3 : Attribuer un sinistre à un gestionnaire
+  AC : Select dropdown des gestionnaires actifs
+
+US-4.4 : Ajouter des commentaires internes
+  AC : Commentaires horodatés, non visibles par l'assuré
+
+US-4.5 : Voir l'historique des actions (audit trail)
+  AC : Log complet avec auteur et timestamp
+
+---
+
+### Epic 5 — Dashboard (Priorité : MOYENNE)
+
+US-5.1 : Voir les KPIs en temps réel
+  AC : Nb sinistres par statut, montants totaux, délais moyens
+
+US-5.2 : Voir des graphiques
+  AC : Line chart évolution temporelle + Pie chart par type
+
+US-5.3 : Filtrer par période
+  AC : Sélecteur : 7j, 30j, 90j, personnalisé
+
+---
+
+### Epic 6 — Administration (Priorité : BASSE)
+
+US-6.1 : Gérer les utilisateurs (CRUD)
+  AC : Création, modification, désactivation de comptes
+
+US-6.2 : Configurer les seuils métier
+  AC : Seuil fraude auto-approbation, seuil escalade manager
+
+US-6.3 : Exporter les données en CSV
+  AC : Export filtrable, toutes colonnes, encodage UTF-8
+
+---
+
+## 5. RÈGLES MÉTIER
+
+### 5.1 Cycle de vie d'un sinistre
+
+  new → analyzing → pending_docs → approved / rejected → closed
+
+### 5.2 Règles d'automatisation
+
+| Règle             | Condition                                          | Action déclenchée                       |
+|-------------------|----------------------------------------------------|-----------------------------------------|
+| Auto-approbation  | Montant estimé < 2 000 € ET scoring fraude < 30    | Statut → approved automatiquement       |
+| Escalade manager  | Scoring fraude > 70                                | Assignation automatique au manager      |
+| Alerte délai      | Aucune action dans les 48 h après création         | Notification interne à l'équipe         |
+| Numérotation      | À chaque nouvelle déclaration validée              | CLM-YYYY-NNNNN (auto-incrément)         |
+
+### 5.3 Niveaux de risque fraude
+
+| Score   | Niveau   | Couleur     | Action                         |
+|---------|----------|-------------|--------------------------------|
+| 0–30    | Faible   | Vert        | Traitement normal              |
+| 31–60   | Modéré   | Orange      | Vérification recommandée       |
+| 61–80   | Élevé    | Rouge       | Escalade automatique manager   |
+| 81–100  | Critique | Rouge foncé | Blocage + escalade urgente     |
+
+### 5.4 Types de sinistres et barèmes
+
+| Code                  | Libellé                      | Barème estimatif       |
+|-----------------------|------------------------------|------------------------|
+| bris_glace            | Bris de glace                | 200 – 1 500 €          |
+| carrosserie_legere    | Dommages carrosserie légers  | 500 – 3 000 €          |
+| carrosserie_moyenne   | Dommages carrosserie moyens  | 3 000 – 8 000 €        |
+| carrosserie_grave     | Dommages carrosserie graves  | 8 000 – 20 000 €       |
+| irreparable           | Véhicule irréparable         | Valeur vénale          |
+| corporel_leger        | Dommages corporels légers    | 1 000 – 5 000 €        |
+| collision             | Collision                    | Variable selon gravité |
+| vol                   | Vol                          | Valeur vénale          |
+| vandalisme            | Vandalisme                   | Variable               |
+| catastrophe_naturelle | Catastrophe naturelle        | Variable               |
+| incendie              | Incendie                     | Variable               |
+
+---
+
+## 6. ARCHITECTURE TECHNIQUE
+
+### 6.1 Stack
+
+| Couche          | Technologie                          |
+|-----------------|--------------------------------------|
+| Framework       | Next.js 15 (App Router)              |
+| Langage         | TypeScript strict                    |
+| UI              | Tailwind CSS + shadcn/ui             |
+| Graphiques      | Recharts                             |
+| ORM             | Prisma                               |
+| Base de données | SQLite (dev) / PostgreSQL (prod)     |
+| IA              | Anthropic Claude API                 |
+| Auth            | NextAuth.js v5                       |
+| Validation      | Zod                                  |
+| Tests           | Vitest + Testing Library + Playwright|
+| Qualité         | ESLint + Prettier + Husky            |
+
+### 6.2 Variables d'environnement
+
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_SECRET="your-secret-here"
+NEXTAUTH_URL="http://localhost:3000"
+ANTHROPIC_API_KEY="[CLE_API_ANTHROPIC]"
+
+### 6.3 Endpoints API
+
+| Domaine   | Méthode | Endpoint                        | Description                        |
+|-----------|---------|---------------------------------|------------------------------------|
+| Auth      | POST    | /api/auth/signin                | Connexion email/mot de passe       |
+| Auth      | GET     | /api/auth/session               | Session courante                   |
+| Claims    | GET     | /api/claims                     | Liste paginée avec filtres         |
+| Claims    | POST    | /api/claims                     | Créer un sinistre                  |
+| Claims    | GET     | /api/claims/:id                 | Détail d'un sinistre               |
+| Claims    | PUT     | /api/claims/:id                 | Mettre à jour un sinistre          |
+| Claims    | DELETE  | /api/claims/:id                 | Supprimer un sinistre              |
+| Claims    | POST    | /api/claims/:id/analyze         | Déclencher l'analyse IA complète   |
+| Documents | GET     | /api/claims/:id/documents       | Lister les documents               |
+| Documents | POST    | /api/claims/:id/documents       | Upload de fichiers                 |
+| Comments  | GET     | /api/claims/:id/comments        | Lister les commentaires            |
+| Comments  | POST    | /api/claims/:id/comments        | Ajouter un commentaire             |
+| IA        | POST    | /api/ai/extract                 | Extraction structurée (Claude)     |
+| IA        | POST    | /api/ai/fraud                   | Scoring de fraude (Claude)         |
+| IA        | POST    | /api/ai/estimate                | Estimation montant (Claude)        |
+| IA        | POST    | /api/ai/letter                  | Génération de courrier (Claude)    |
+| Dashboard | GET     | /api/dashboard/stats            | KPIs temps réel                    |
+| Dashboard | GET     | /api/dashboard/charts           | Données graphiques                 |
+| Admin     | CRUD    | /api/admin/users                | Gestion utilisateurs               |
+| Admin     | GET     | /api/admin/export               | Export CSV                         |
+
+### 6.4 Architecture IA — orchestration
+
+POST /api/claims/:id/analyze déclenche séquentiellement :
+  1. /api/ai/extract   → données structurées (JSON)
+  2. /api/ai/fraud     → score + indicateurs (JSON)
+  3. /api/ai/estimate  → fourchette + ventilation (JSON)
+  4. /api/ai/letter    → courrier pré-généré (string)
+
+Resilience : si un appel échoue, les autres résultats sont conservés.
+
+---
+
+## 7. INTÉGRATION IA
+
+### 7.1 Extraction d'informations
+
+Entrée  : description libre du sinistre (texte)
+Sortie  : JSON structuré contenant :
+  - date, heure, lieu de l'incident
+  - type de sinistre et sévérité
+  - véhicules impliqués et dommages
+  - blessures éventuelles
+  - tiers impliqués
+  - informations manquantes détectées
+
+### 7.2 Scoring de fraude
+
+Entrée  : données du sinistre + description
+Sortie  : { score: 0-100, indicators: string[], explanation: string }
+
+Critères évalués :
+  - Cohérence temporelle et géographique
+  - Proportionnalité des dommages déclarés
+  - Présence ou absence de témoins
+  - Délai entre incident et déclaration
+  - Historique sinistres de l'assuré
+  - Indicateurs classiques de fraude documentaire
+
+### 7.3 Estimation d'indemnisation
+
+Entrée  : type de sinistre + données extraites
+Sortie  : { min: number, max: number, probable: number, breakdown: object }
+
+Basée sur les barèmes définis en section 5.4.
+
+### 7.4 Génération de courriers
+
+Types disponibles :
+  1. Accusé de réception de la déclaration
+  2. Demande de pièces complémentaires
+  3. Notification d'approbation avec montant
+  4. Notification de refus avec motifs
+  5. Demande d'information complémentaire
+
+---
+
+## 8. DONNÉES DE TEST (SEED)
+
+### 8.1 Utilisateurs
+
+| Nom           | Email                  | Rôle    | Mot de passe |
+|---------------|------------------------|---------|--------------|
+| Julie Martin  | julie@claimflow.ai     | handler | password123  |
+| Marc Dubois   | marc@claimflow.ai      | manager | password123  |
+| Thomas Petit  | thomas@claimflow.ai    | admin   | password123  |
+
+### 8.2 Assurés & véhicules
+
+| Assuré         | N° Police    | Véhicule                | Immat.     |
+|----------------|--------------|-------------------------|------------|
+| Jean Dupont    | POL-2024-001 | Renault Clio 2022       | AB-123-CD  |
+| Marie Lambert  | POL-2024-002 | Peugeot 308 2021        | EF-456-GH  |
+| Pierre Martin  | POL-2024-003 | Volkswagen Golf 2023    | IJ-789-KL  |
+| Sophie Leroy   | POL-2024-004 | Toyota Yaris 2020       | MN-012-OP  |
+| Lucas Bernard  | POL-2024-005 | BMW Série 3 2022        | QR-345-ST  |
+
+### 8.3 Sinistres (10 cas couvrant tous les scénarios)
+
+| #  | Assuré         | Type                | Description résumée                          | Score fraude attendu |
+|----|----------------|---------------------|----------------------------------------------|----------------------|
+| 1  | Jean Dupont    | collision           | Accrochage parking supermarché, rétro cassé  | ~15 (faible)         |
+| 2  | Marie Lambert  | vol                 | Vol nuit, déclaration lendemain matin        | ~25 (faible)         |
+| 3  | Pierre Martin  | collision           | Carrefour, tiers en tort                     | ~10 (faible)         |
+| 4  | Sophie Leroy   | vandalisme          | Rayures carrosserie, pas de témoin           | ~40 (modéré)         |
+| 5  | Lucas Bernard  | collision           | Autoroute, dégâts importants                 | ~20 (faible)         |
+| 6  | Jean Dupont    | bris_glace          | Pare-brise fissuré sur autoroute             | ~5 (faible)          |
+| 7  | Marie Lambert  | collision           | 2e sinistre en 3 mois, circonstances vagues  | ~75 (élevé)          |
+| 8  | Pierre Martin  | incendie            | Parking, assurance augmentée récemment       | ~85 (critique)       |
+| 9  | Sophie Leroy   | catastrophe_nat.    | Grêle, toit et capot endommagés              | ~5 (faible)          |
+| 10 | Lucas Bernard  | vol                 | Déclaré 2 semaines après, pas de plainte     | ~70 (élevé)          |
+
+---
+
+## 9. SPRINT PLAN — 5 JOURS
+
+### Répartition binôme
+
+Dev A — Backend & IA        : API, base de données, logique métier, intégration Claude API
+Dev B — Frontend & UX       : Interface utilisateur, composants, pages, graphiques
+
+### Jour 1 — Setup & Fondations
+Dev A : Initialiser projet Next.js 15 + TypeScript + Prisma + SQLite, concevoir et migrer schema DB, seed
+Dev B : Installer shadcn/ui, concevoir layout (sidebar + header), routing, configurer NextAuth
+Sync  : Validation schema Prisma + contrat API (30 min)
+
+### Jour 2 — Backend API & Premiers composants
+Dev A : TDD → GET /api/claims (tests d'abord), CRUD claims + policyholders + upload documents
+Dev B : ClaimsTable + filtres, page /claims, badges statut, formulaire multi-étapes
+Sync  : Démo croisée API + maquettes UI (30 min)
+
+### Jour 3 — Intégration IA (cœur du projet)
+Dev A : @anthropic-ai/sdk, Agent Teams (4 prompts parallèles), ai.service.ts, 4 endpoints IA, hooks pre-commit
+Dev B : AIAnalysisPanel, FraudScoreCard (jauge), EstimationCard, LetterGenerator, MCP server barèmes
+Sync  : Intégration frontend ↔ backend (1 h)
+
+### Jour 4 — Dashboard, polish & refactoring
+Dev A : /api/dashboard/stats + charts, workflow statuts (auto-approbation + escalade), export CSV, refactoring
+Dev B : Dashboard 4 KPIs + 2 graphiques Recharts, timeline, page admin, décomposition ClaimForm (400 lignes → 4 composants)
+Sync  : Revue fonctionnalités IA dans l'UI (30 min)
+
+### Jour 5 — Tests, qualité & démo
+Dev A : Couverture tests > 60 %, debugging (3 bugs volontaires), code review complète backend
+Dev B : Tests E2E Playwright (3 scénarios), tests composants Testing Library, /commit conventionnel
+Sync  : Tests croisés A ↔ B (1 h) + démo finale 15 min
+
+---
+
+## 10. CHECKLIST CLAUDE CODE (14 FONCTIONNALITÉS)
+
+| #  | Fonctionnalité   | Jour   | Exercice                                       | Fait ? |
+|----|------------------|--------|------------------------------------------------|--------|
+| 1  | Scaffolding      | J1     | Initialisation du projet                       | [ ]    |
+| 2  | Plan mode        | J1     | Conception schéma DB + layout                  | [ ]    |
+| 3  | Code generation  | J1–J5  | Génération composants, services, API           | [ ]    |
+| 4  | TDD              | J2     | Tests API avant implémentation                 | [ ]    |
+| 5  | Debugging        | J2, J5 | Correction de bugs volontaires/involontaires   | [ ]    |
+| 6  | Agent Teams      | J3     | Génération parallèle des 4 prompts IA          | [ ]    |
+| 7  | MCP Servers      | J3     | Serveur MCP barèmes d'indemnisation            | [ ]    |
+| 8  | Hooks            | J3     | Pre-commit validation prompts IA               | [ ]    |
+| 9  | Multi-file edit  | J4     | Refactoring service IA + formulaire            | [ ]    |
+| 10 | Refactoring      | J4     | Décomposition fichiers volumineux              | [ ]    |
+| 11 | Code review      | J5     | Review complète du backend                     | [ ]    |
+| 12 | /commit          | J5     | Commit conventionnel via Claude                | [ ]    |
+| 13 | Tests E2E        | J5     | Scénarios Playwright                           | [ ]    |
+| 14 | Tests composants | J5     | Testing Library composants critiques           | [ ]    |
+
+---
+
+## 11. CRITÈRES D'ÉVALUATION
+
+| Critère                | Poids | Description                                                    |
+|------------------------|-------|----------------------------------------------------------------|
+| Fonctionnalités        | 40 %  | Toutes les US priorité HAUTE livrées et fonctionnelles        |
+| Qualité du code        | 20 %  | TypeScript strict, pas de any, séparation des responsabilités |
+| Tests                  | 15 %  | Couverture > 60 %, tests E2E, tests unitaires pertinents      |
+| Utilisation Claude Code| 15 %  | Preuve d'utilisation des 14 fonctionnalités                   |
+| Démo                   | 10 %  | Démo fluide 15 min, scénario complet                          |
+
+### Scénario de démo (15 minutes)
+
+1. [2 min] LOGIN      : Julie se connecte → redirection /claims
+2. [1 min] DASHBOARD  : Vue d'ensemble KPIs + graphiques Recharts
+3. [3 min] DÉCLARATION: Nouveau sinistre formulaire 4 étapes + upload photos
+4. [3 min] ANALYSE IA : Extraction auto + scoring fraude 72 → alerte rouge + estimation
+5. [2 min] WORKFLOW   : Escalade automatique Marc → Marc approuve
+6. [2 min] COURRIER   : Génération automatique du courrier à l'assuré
+7. [2 min] EXPORT     : Marc exporte les statistiques en CSV
+
+---
+
+## 12. BONUS & CHALLENGES
+
+| # | Challenge                                          | Points | Difficulté |
+|---|----------------------------------------------------|--------|------------|
+| 1 | Mode sombre (next-themes)                          | +2     | Facile     |
+| 2 | Notifications in-app (changement de statut)        | +3     | Moyen      |
+| 3 | Export PDF du sinistre (@react-pdf/renderer)       | +3     | Moyen      |
+| 4 | Déploiement Vercel + PostgreSQL Neon               | +2     | Moyen      |
+| 5 | MCP externe — API météo réelle                     | +4     | Difficile  |
+| 6 | Chatbot RAG — interroger les dossiers en NLP       | +5     | Difficile  |
+| 7 | Analyse d'image — Claude Vision pour les photos    | +4     | Difficile  |
+
+---
+
+## 13. RESSOURCES
+
+| Ressource                  | URL                                                         |
+|----------------------------|-------------------------------------------------------------|
+| Next.js 15                 | https://nextjs.org/docs                                     |
+| Prisma ORM                 | https://www.prisma.io/docs                                  |
+| Claude API                 | https://docs.anthropic.com                                  |
+| Anthropic TypeScript SDK   | https://github.com/anthropics/anthropic-sdk-typescript      |
+| shadcn/ui                  | https://ui.shadcn.com                                       |
+| Tailwind CSS               | https://tailwindcss.com/docs                                |
+| Recharts                   | https://recharts.org                                        |
+| NextAuth.js                | https://authjs.dev                                          |
+| Vitest                     | https://vitest.dev                                          |
+| Playwright                 | https://playwright.dev                                      |
+| Claude Code — Guide        | https://docs.anthropic.com/en/docs/claude-code              |
+| Claude Code — Plan mode    | https://docs.anthropic.com/en/docs/claude-code/plan-mode    |
+| Claude Code — Agent Teams  | https://docs.anthropic.com/en/docs/claude-code/agent-teams  |
+| Claude Code — MCP Servers  | https://docs.anthropic.com/en/docs/claude-code/mcp-servers  |
+| Claude Code — Hooks        | https://docs.anthropic.com/en/docs/claude-code/hooks        |
+
+---
+
+# END OF PRD
+# ClaimFlow AI v1.0 — Leadmind AI — Février 2026
