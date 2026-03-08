@@ -137,6 +137,29 @@ export default function PortailLoginPage() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Comptes de démo */}
+        <div className="bg-white border border-gray-200 rounded-lg p-4 text-xs text-gray-600">
+          <p className="font-semibold text-gray-700 mb-2">Comptes de démonstration</p>
+          <div className="space-y-1.5">
+            {[
+              { name: "Marie Dupont", policy: "POL-2024-001", email: "marie.dupont@email.fr" },
+              { name: "Jean Martin", policy: "POL-2024-002", email: "jean.martin@email.fr" },
+              { name: "Sophie Bernard", policy: "POL-2024-003", email: "sophie.bernard@email.fr" },
+            ].map((c) => (
+              <button
+                key={c.policy}
+                type="button"
+                className="w-full text-left px-3 py-2 rounded hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-colors"
+                onClick={() => { setPolicyNumber(c.policy); setEmail(c.email); }}
+              >
+                <span className="font-medium text-gray-800">{c.name}</span>
+                <span className="ml-2 font-mono text-gray-500">{c.policy}</span>
+                <span className="ml-2 text-gray-400">{c.email}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
