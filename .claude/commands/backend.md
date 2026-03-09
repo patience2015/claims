@@ -11,18 +11,19 @@ $ARGUMENTS
 
 ---
 
-À partir du plan Architecte fourni, génère dans cet ordre :
+### 0. Référence design Stitch ⚠️ OBLIGATOIRE
 
-### 0. Vérification écrans Stitch (si feature avec UI)
+Avant tout développement, récupérer le HTML Stitch des écrans concernés par la feature :
+- Utiliser `mcp__stitch__get_screen_html` pour chaque écran impacté (cf. liste dans `CLAUDE.md`)
+- Projet Stitch : `projects/4597385239557674039`
+- Analyser la structure des composants UI pour s'assurer que les réponses API correspondent exactement aux champs attendus par le frontend
+- Si les écrans n'existent pas encore, lancer `/design` d'abord
 
-Avant de commencer, vérifier si des écrans Stitch ont été générés à l'étape `/design` :
-```
-mcp__stitch__list_screens({ projectId: "projects/4597385239557674039" })
-```
-Si des écrans existent pour cette feature, noter les screen IDs pour les transmettre au `/frontend`.
-Les contrats API doivent correspondre exactement aux données affichées dans les écrans Stitch.
+Les réponses JSON des routes API DOIVENT correspondre aux champs affichés dans les écrans Stitch.
 
 ---
+
+À partir du plan Architecte fourni, génère dans cet ordre :
 
 ### 1. Prisma (si nouveau modèle)
 - Modifier `prisma/schema.prisma`
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
   // vérification rôle si nécessaire
   // validation Zod des query params
   // requête Prisma
-  // retour JSON
+  // retour JSON — champs alignés avec les écrans Stitch
 }
 ```
 
@@ -60,6 +61,7 @@ Règles :
 - Try/catch autour des opérations Prisma
 - Codes HTTP : 201 (create), 200 (ok), 400 (validation), 401 (auth), 403 (role), 404 (not found)
 - Jamais d'`any` TypeScript
+- Les champs retournés en JSON doivent correspondre aux données affichées dans les écrans Stitch
 
 ### 5. Upload de documents (si applicable)
 - Taille max : 10 Mo par fichier
@@ -73,4 +75,4 @@ Règles :
 
 ---
 
-**Handover** → `/qa` pour validation + `/frontend` pour consommation API (avec screen IDs Stitch)
+**Handover** → `/qa` pour validation + `/frontend` pour consommation API (en lui passant également le HTML Stitch récupéré)
