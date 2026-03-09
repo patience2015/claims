@@ -2,10 +2,11 @@
  * auth.config.ts — Config Edge-compatible (sans Prisma ni bcrypt)
  * Utilisé par le middleware (Edge Runtime)
  */
+import NextAuth from "next-auth";
 import type { NextAuthConfig } from "next-auth";
 import { UserRole } from "@/types";
 
-export const authConfig: NextAuthConfig = {
+export const authConfig = {
   session: {
     strategy: "jwt",
     maxAge: 8 * 60 * 60,
@@ -35,4 +36,6 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
     error: "/login",
   },
-};
+} satisfies NextAuthConfig;
+
+export default NextAuth(authConfig);

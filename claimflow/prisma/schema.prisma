@@ -62,6 +62,11 @@ model Claim {
   description     String
   incidentDate    DateTime
   incidentLocation String
+  incidentCity    String?
+  incidentZipCode String?
+  incidentCountry String?
+  latitude        Float?
+  longitude       Float?
   thirdPartyInvolved Boolean @default(false)
   thirdPartyInfo  String?  // JSON string
   estimatedAmount Float?
@@ -69,6 +74,11 @@ model Claim {
   fraudScore      Int?
   fraudRisk       String?  // LOW | MODERATE | HIGH | CRITICAL
   closureReason   String?
+  repairGarage    String?
+  expertName      String?
+  networkScore    Int?
+  networkRisk     String?
+  networkId       String?
 
   policyholderID  String
   policyholder    Policyholder @relation(fields: [policyholderID], references: [id])
@@ -88,6 +98,7 @@ model Claim {
   auditLogs          AuditLog[]
   emailNotifications EmailNotification[]
   notifications      Notification[]      @relation("ClaimNotifications")
+  fraudNetwork       FraudNetwork?       @relation("ClaimNetwork", fields: [networkId], references: [id])
 }
 
 model Document {
@@ -191,4 +202,63 @@ model NotificationPreference {
   updatedAt    DateTime @updatedAt
 
   @@unique([userId, type])
+}
+
+model FraudNetwork {
+  id            String    @id @default(cuid())
+  networkNumber String    @unique
+  status        String    @default("ACTIVE") // ACTIVE | SUSPECT | CRITICAL | DISMISSED | UNDER_INVESTIGATION | INACTIVE
+  networkScore  Int       @default(0)
+  nodeCount     Int       @default(0)
+  claimCount    Int       @default(0)
+  avgFraudScore Float     @default(0)
+  density       Float     @default(0)
+  nodesJson     String    @default("[]") // JSON array of node objects
+  mergedFrom    String?   // JSON array of merged network IDs
+  notes         String?
+  version       Int       @default(0)
+  archivedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  links         FraudLink[]
+  audits        FraudNetworkAudit[]
+  claims        Claim[]   @relation("ClaimNetwork")
+}
+
+model FraudLink {
+  id           String   @id @default(cuid())
+  networkId    String
+  sourceType   String   // POLICYHOLDER | GARAGE | EXPERT | LOCATION
+  sourceKey    String
+  sourceLabel  String
+  targetType   String
+  targetKey    String
+  targetLabel  String
+  weight       Float    @default(1.0)
+  occurrences  Int      @default(1)
+  claimIds     String   @default("[]") // JSON array
+  stale        Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  network FraudNetwork @relation(fields: [networkId], references: [id], onDelete: Cascade)
+
+  @@index([networkId])
+  @@index([sourceKey, targetKey])
+}
+
+model FraudNetworkAudit {
+  id        String   @id @default(cuid())
+  networkId String
+  action    String   // NETWORK_CREATED | NETWORK_DISMISSED | NETWORK_ESCALATED | NETWORK_RECOMPUTED | NETWORK_ARCHIVED | NETWORK_MERGED
+  before    String?  // JSON
+  after     String?  // JSON
+  metadata  String?  // JSON
+  userId    String?
+  createdAt DateTime @default(now())
+
+  network FraudNetwork @relation(fields: [networkId], references: [id], onDelete: Cascade)
+
+  @@index([networkId])
 }

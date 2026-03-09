@@ -226,7 +226,7 @@ US-6.3 : Exporter les données en CSV
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-secret-here"
 NEXTAUTH_URL="http://localhost:3000"
-ANTHROPIC_API_KEY="sk-ant-..."
+ANTHROPIC_API_KEY="[CLE_API_ANTHROPIC]"
 
 ### 6.3 Endpoints API
 

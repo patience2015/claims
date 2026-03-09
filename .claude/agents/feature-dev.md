@@ -43,6 +43,9 @@ Agent full-stack spécialisé dans l'ajout de nouvelles fonctionnalités ClaimFl
 - Créer les composants dans `src/components/`
 - Créer ou modifier les pages dans `src/app/`
 - Utiliser les composants UI existants (Badge, Card, Button, etc.)
+- **Commandes disponibles** :
+    - `/add-address-autocomplete` : Pour ajouter une recherche d'adresse (BAN) sans clé API.
+    - `/add-maps` : Pour une intégration Google Maps (nécessite clé API).
 
 ### 5. Tests
 - Écrire les tests Vitest dans `tests/`

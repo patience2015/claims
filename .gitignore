@@ -12,6 +12,7 @@ yarn-error.log*
 .env.development
 .env.production
 .env.test
+environnement.json
 
 # Build outputs
 
@@ -130,3 +131,5 @@ pnpm-lock.yaml
 files.zip
 claimflow/.next/
 claimflow/uploads/
+.claude/settings.local.json
+.claude/*.local.json

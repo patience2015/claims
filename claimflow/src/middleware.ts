@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getDefaultRedirect } from "@/lib/permissions";
 import { UserRole } from "@/types";
 
+// Important: Init NextAuth with only the Edge-compatible config
 const { auth } = NextAuth(authConfig);
 
 // Protected routes and their minimum required roles
@@ -20,6 +21,8 @@ const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
   "/api/notifications": ["HANDLER", "MANAGER", "ADMIN"],
   "/portail/mes-sinistres": ["POLICYHOLDER"],
   "/api/portail": ["POLICYHOLDER"],
+  "/api/fraud-networks": ["MANAGER", "ADMIN"],
+  "/fraud-networks": ["MANAGER", "ADMIN"],
 };
 
 export default auth(function middleware(req) {

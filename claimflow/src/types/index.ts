@@ -46,7 +46,12 @@ export type AuditAction =
   | "NOTIFICATION_READ"
   | "NOTIFICATION_PREFERENCES_UPDATED"
   | "FRAUD_ALERT_SENT"
-  | "SLA_BREACH_DETECTED";
+  | "SLA_BREACH_DETECTED"
+  | "NETWORK_CREATED"
+  | "NETWORK_DISMISSED"
+  | "NETWORK_ESCALATED"
+  | "NETWORK_RECOMPUTED"
+  | "NETWORK_ARCHIVED";
 
 // Notification types
 export type NotificationType =
@@ -54,7 +59,9 @@ export type NotificationType =
   | "STATUS_CHANGED"
   | "FRAUD_ALERT"
   | "SLA_BREACH"
-  | "DOCUMENT_UPLOADED_BY_POLICYHOLDER";
+  | "DOCUMENT_UPLOADED_BY_POLICYHOLDER"
+  | "NETWORK_FRAUD_ALERT"
+  | "NETWORK_ESCALATED";
 
 export type NotificationStatus = "UNREAD" | "READ";
 
@@ -341,3 +348,70 @@ export const FRAUD_RISK_LABELS: Record<FraudRisk, string> = {
   HIGH: "Élevé",
   CRITICAL: "Critique",
 };
+
+// ─── Fraude Réseau ────────────────────────────────────────────────────────────
+
+export type FraudNetworkStatus =
+  | "ACTIVE"
+  | "SUSPECT"
+  | "CRITICAL"
+  | "DISMISSED"
+  | "UNDER_INVESTIGATION"
+  | "INACTIVE";
+
+export type FraudNodeType = "POLICYHOLDER" | "GARAGE" | "EXPERT" | "LOCATION";
+
+export interface FraudNodeItem {
+  type: FraudNodeType;
+  key: string;
+  label: string;
+  claimIds: string[];
+  claimCount: number;
+}
+
+export interface FraudLinkItem {
+  id: string;
+  sourceType: FraudNodeType;
+  sourceKey: string;
+  sourceLabel: string;
+  targetType: FraudNodeType;
+  targetKey: string;
+  targetLabel: string;
+  weight: number;
+  occurrences: number;
+  claimIds: string[];
+}
+
+export interface FraudNetworkItem {
+  id: string;
+  networkNumber: string;
+  status: FraudNetworkStatus;
+  networkScore: number;
+  nodeCount: number;
+  claimCount: number;
+  avgFraudScore: number;
+  density: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FraudNetworkDetail extends FraudNetworkItem {
+  nodes: FraudNodeItem[];
+  links: FraudLinkItem[];
+  notes: string | null;
+  claims: {
+    id: string;
+    claimNumber: string;
+    status: string;
+    fraudScore: number | null;
+    networkScore: number | null;
+  }[];
+  auditTrail?: {
+    id: string;
+    action: string;
+    userId: string;
+    userName: string;
+    createdAt: string;
+    metadata?: string | null;
+  }[];
+}

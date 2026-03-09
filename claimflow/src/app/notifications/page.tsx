@@ -90,6 +90,18 @@ const TYPE_CONFIG: Record<NotificationType, IconConfig> = {
     bgClass: "bg-purple-50",
     label: "Document reçu",
   },
+  NETWORK_FRAUD_ALERT: {
+    Icon: AlertTriangle,
+    iconClass: "text-red-600",
+    bgClass: "bg-red-50",
+    label: "Réseau fraude",
+  },
+  NETWORK_ESCALATED: {
+    Icon: AlertTriangle,
+    iconClass: "text-red-700",
+    bgClass: "bg-red-100",
+    label: "Réseau escaladé",
+  },
 };
 
 type StatusFilter = "ALL" | "UNREAD" | "READ";
@@ -373,14 +385,6 @@ export default function NotificationsPage() {
                     </span>
                     <span className="text-xs text-gray-300">•</span>
                     <span className="text-xs text-gray-400">{config.label}</span>
-                    {notif.claim && (
-                      <>
-                        <span className="text-xs text-gray-300">•</span>
-                        <span className="text-xs font-medium text-blue-600">
-                          {notif.claim.claimNumber}
-                        </span>
-                      </>
-                    )}
                   </div>
                 </div>
               </div>

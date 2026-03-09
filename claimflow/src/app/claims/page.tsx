@@ -11,7 +11,7 @@ import {
   ClaimStatus,
   ClaimType,
 } from "@/types";
-import { formatDate, formatCurrency, getFraudColor } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import { Plus, Search, Filter, AlertTriangle, Download, ChevronLeft, ChevronRight, Eye, Pencil } from "lucide-react";
 import { useSession } from "next-auth/react";
 

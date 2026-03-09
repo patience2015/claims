@@ -140,8 +140,6 @@ export function LetterGenerator({ claimId, policyholderEmail }: LetterGeneratorP
     }
   };
 
-  const hasContent = letter || streamedText;
-
   // Strip only markdown code block markers — never touch the actual content
   const cleanText = (text: string) =>
     text

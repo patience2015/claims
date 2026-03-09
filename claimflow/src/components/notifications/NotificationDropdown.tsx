@@ -81,6 +81,16 @@ const TYPE_CONFIG: Record<NotificationType, IconConfig> = {
     iconClass: "text-purple-500",
     bgClass: "bg-purple-50",
   },
+  NETWORK_FRAUD_ALERT: {
+    Icon: AlertTriangle,
+    iconClass: "text-red-600",
+    bgClass: "bg-red-50",
+  },
+  NETWORK_ESCALATED: {
+    Icon: AlertTriangle,
+    iconClass: "text-red-700",
+    bgClass: "bg-red-100",
+  },
 };
 
 // --------------------------------------------------------------------------
@@ -317,11 +327,6 @@ export function NotificationDropdown({
                     <span className="text-[11px] text-gray-400">
                       {formatRelativeTime(notif.createdAt)}
                     </span>
-                    {notif.claim && (
-                      <span className="text-[11px] text-blue-500 font-medium">
-                        {notif.claim.claimNumber}
-                      </span>
-                    )}
                   </div>
                 </div>
 

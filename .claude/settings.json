@@ -6,6 +6,12 @@
         "-y",
         "stitch-mcp"
       ]
+    },
+    "github": {
+      "command": "node",
+      "args": [
+        "./.claude/mcp-github.js"
+      ]
     }
   },
   "permissions": {

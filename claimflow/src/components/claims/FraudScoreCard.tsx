@@ -1,6 +1,6 @@
 "use client";
 import { getFraudColor, getFraudBgColor } from "@/lib/utils";
-import { FraudAnalysisResult, FraudFactor } from "@/types";
+import { FraudFactor } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, CheckCircle, XCircle, Shield } from "lucide-react";
 

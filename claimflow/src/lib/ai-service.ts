@@ -22,10 +22,15 @@ import {
   LETTER_SYSTEM_PROMPT,
   letterUserPrompt,
 } from "@/lib/prompts/letter";
+import { getNetworkScoreForClaim } from "@/lib/fraud-network-service";
 
-const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+let _client: Groq | null = null;
+function getClient(): Groq {
+  if (!_client) {
+    _client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return _client;
+}
 
 const MODEL = "llama-3.3-70b-versatile";
 
@@ -61,7 +66,7 @@ export async function extractClaimInfo(
 ): Promise<{ result: ExtractionResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 2048,
     messages: [
@@ -79,16 +84,29 @@ export async function extractClaimInfo(
 
 // 2. Fraud Scoring
 export async function analyzeFraud(
-  claimData: Record<string, unknown>
+  claimData: Record<string, unknown>,
+  claimId?: string
 ): Promise<{ result: FraudAnalysisResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  // Inject network risk context if claimId is provided
+  const enrichedClaimData = { ...claimData };
+  if (claimId) {
+    try {
+      const { networkScore, networkRisk } = await getNetworkScoreForClaim(claimId);
+      enrichedClaimData.networkScore = networkScore;
+      enrichedClaimData.networkRisk = networkRisk;
+    } catch {
+      // Non-blocking: if network score lookup fails, proceed without it
+    }
+  }
+
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 1024,
     messages: [
       { role: "system", content: FRAUD_SYSTEM_PROMPT },
-      { role: "user", content: fraudUserPrompt(claimData) },
+      { role: "user", content: fraudUserPrompt(enrichedClaimData) },
     ],
   });
 
@@ -105,7 +123,7 @@ export async function estimateIndemnization(
 ): Promise<{ result: EstimationResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 1024,
     messages: [
@@ -128,7 +146,7 @@ export async function generateLetter(
 ): Promise<{ result: LetterResult; tokensUsed: number; durationMs: number }> {
   const start = Date.now();
 
-  const response = await client.chat.completions.create({
+  const response = await getClient().chat.completions.create({
     model: MODEL,
     max_tokens: 1024,
     messages: [

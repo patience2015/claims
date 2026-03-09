@@ -1,7 +1,7 @@
 "use client";
 import { formatDateTime } from "@/lib/utils";
 import { CLAIM_STATUS_LABELS } from "@/types";
-import { Clock, User, Brain, FileText, MessageSquare, CheckCircle, XCircle } from "lucide-react";
+import { Clock, User, Brain, FileText, MessageSquare, CheckCircle } from "lucide-react";
 
 interface TimelineEvent {
   id: string;

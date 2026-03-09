@@ -63,33 +63,42 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Données invalides", details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { thirdPartyInfo, ...claimData } = parsed.data;
-  const claimNumber = await generateClaimNumber();
+  try {
+    const { thirdPartyInfo, ...claimData } = parsed.data;
+    const claimNumber = await generateClaimNumber();
 
-  // Auto-assign to the creator if they are a HANDLER.
-  // If MANAGER/ADMIN creates the claim, leave unassigned (they will assign later).
-  const assignedToID = session.user.role === "HANDLER" ? session.user.id : null;
+    // Auto-assign to the creator if they are a HANDLER.
+    // If MANAGER/ADMIN creates the claim, leave unassigned (they will assign later).
+    const assignedToID = session.user.role === "HANDLER" ? session.user.id : null;
 
-  const claim = await prisma.claim.create({
-    data: {
-      ...claimData,
-      claimNumber,
-      thirdPartyInfo: thirdPartyInfo ? JSON.stringify(thirdPartyInfo) : null,
-      createdByID: session.user.id,
-      ...(assignedToID ? { assignedToID } : {}),
-      status: "SUBMITTED",
-    },
-    include: CLAIM_INCLUDE,
-  });
+    const claim = await prisma.claim.create({
+      data: {
+        ...claimData,
+        incidentDate: new Date(claimData.incidentDate),
+        claimNumber,
+        thirdPartyInfo: thirdPartyInfo ? JSON.stringify(thirdPartyInfo) : null,
+        createdByID: session.user.id,
+        ...(assignedToID ? { assignedToID } : {}),
+        status: "SUBMITTED",
+      },
+      include: CLAIM_INCLUDE,
+    });
 
-  await createAuditLog({
-    action: "CLAIM_CREATED",
-    entityType: "CLAIM",
-    entityId: claim.id,
-    after: { claimNumber: claim.claimNumber, status: claim.status, type: claim.type },
-    claimId: claim.id,
-    userId: session.user.id,
-  });
+    await createAuditLog({
+      action: "CLAIM_CREATED",
+      entityType: "CLAIM",
+      entityId: claim.id,
+      after: { claimNumber: claim.claimNumber, status: claim.status, type: claim.type },
+      claimId: claim.id,
+      userId: session.user.id,
+    });
 
-  return NextResponse.json({ data: claim }, { status: 201 });
+    return NextResponse.json({ data: claim }, { status: 201 });
+  } catch (err) {
+    console.error("[POST /api/claims] Error:", err);
+    return NextResponse.json(
+      { error: "Erreur lors de la création du sinistre", details: String(err) },
+      { status: 500 }
+    );
+  }
 }

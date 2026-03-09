@@ -495,7 +495,7 @@ Types de courriers :
 DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="votre-secret-ici"
 NEXTAUTH_URL="http://localhost:3000"
-ANTHROPIC_API_KEY="sk-ant-..."
+ANTHROPIC_API_KEY="[CLE_API_ANTHROPIC]"
 ```
 
 ---
