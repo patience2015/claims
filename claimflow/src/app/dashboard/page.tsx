@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import {
   FileText, AlertTriangle, TrendingUp, Clock, Users,
-  RefreshCw, Bell, ChevronRight, Eye, Zap
+  RefreshCw, Bell, ChevronRight, Eye, Zap, Map
 } from "lucide-react";
 import Link from "next/link";
 
@@ -181,6 +181,29 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
+              {/* Risk heatmap shortcut (Manager/Admin) */}
+              {canViewTeam && (
+                <Link href="/analytics/risk-heatmap" className="block">
+                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 p-5 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                    <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/3" />
+                    <div className="relative flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                        <Map className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white font-semibold text-sm" style={{ fontFamily: "Space Grotesk, Inter, sans-serif" }}>
+                          Carte de risque géographique
+                        </p>
+                        <p className="text-indigo-100 text-xs mt-0.5">
+                          Scores de risque prédictifs par zone · Alertes préventives
+                        </p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-white/60 shrink-0" />
+                    </div>
+                  </div>
+                </Link>
+              )}
+
               {/* KPI cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {kpis.map(({ title, value, icon: Icon, color, sub }) => (

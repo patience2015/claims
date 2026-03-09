@@ -3,7 +3,6 @@
  * Route : liste des sinistres d'un assuré connecté
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextRequest } from "next/server";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -20,6 +19,9 @@ vi.mock("@/auth", () => ({
 import { GET } from "@/app/api/portail/claims/route";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+
+type AuthReturn = ReturnType<typeof auth> extends Promise<infer T> ? T : never;
+type ClaimFindManyReturn = ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never;
 
 const mockPolicyholderSession = {
   user: {
@@ -60,14 +62,13 @@ describe("GET /api/portail/claims", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(prisma.claim.findMany).mockResolvedValue(
-      mockClaims as ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never
+      mockClaims as unknown as ClaimFindManyReturn
     );
   });
 
   it("retourne 401 si non authentifié", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
-    const req = new NextRequest("http://localhost:3000/api/portail/claims");
-    const res = await GET(req);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
+    const res = await GET();
     expect(res.status).toBe(401);
     const data = await res.json();
     expect(data.error).toBe("Non autorisé");
@@ -76,27 +77,24 @@ describe("GET /api/portail/claims", () => {
   it("retourne 403 si rôle non POLICYHOLDER", async () => {
     vi.mocked(auth).mockResolvedValue({
       user: { id: "user-1", role: "HANDLER", policyholderID: null },
-    } as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
-    const req = new NextRequest("http://localhost:3000/api/portail/claims");
-    const res = await GET(req);
+    } as unknown as AuthReturn);
+    const res = await GET();
     expect(res.status).toBe(403);
   });
 
   it("retourne 404 si POLICYHOLDER sans policyholderID en session", async () => {
     vi.mocked(auth).mockResolvedValue({
       user: { id: "user-1", role: "POLICYHOLDER", policyholderID: null },
-    } as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
-    const req = new NextRequest("http://localhost:3000/api/portail/claims");
-    const res = await GET(req);
+    } as unknown as AuthReturn);
+    const res = await GET();
     expect(res.status).toBe(404);
   });
 
   it("retourne la liste des sinistres de l'assuré", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockPolicyholderSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockPolicyholderSession as unknown as AuthReturn
     );
-    const req = new NextRequest("http://localhost:3000/api/portail/claims");
-    const res = await GET(req);
+    const res = await GET();
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.data).toHaveLength(2);
@@ -105,10 +103,9 @@ describe("GET /api/portail/claims", () => {
 
   it("filtre les sinistres par policyholderID de la session", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockPolicyholderSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockPolicyholderSession as unknown as AuthReturn
     );
-    const req = new NextRequest("http://localhost:3000/api/portail/claims");
-    await GET(req);
+    await GET();
     expect(prisma.claim.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { policyholderID: "ph-1" },
@@ -118,21 +115,19 @@ describe("GET /api/portail/claims", () => {
 
   it("retourne un tableau vide si aucun sinistre", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockPolicyholderSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockPolicyholderSession as unknown as AuthReturn
     );
     vi.mocked(prisma.claim.findMany).mockResolvedValue([]);
-    const req = new NextRequest("http://localhost:3000/api/portail/claims");
-    const res = await GET(req);
+    const res = await GET();
     const data = await res.json();
     expect(data.data).toHaveLength(0);
   });
 
   it("trie les sinistres par date de création décroissante", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockPolicyholderSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockPolicyholderSession as unknown as AuthReturn
     );
-    const req = new NextRequest("http://localhost:3000/api/portail/claims");
-    await GET(req);
+    await GET();
     expect(prisma.claim.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ orderBy: { createdAt: "desc" } })
     );

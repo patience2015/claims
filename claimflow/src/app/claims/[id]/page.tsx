@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AIAnalysisPanel } from "@/components/claims/AIAnalysisPanel";
 import { ClaimTimeline } from "@/components/claims/ClaimTimeline";
+import { RiskScoreWidget } from "@/components/risk/RiskScoreWidget";
+import { RiskScoreHistory } from "@/components/risk/RiskScoreHistory";
 import {
   CLAIM_STATUS_LABELS,
   CLAIM_TYPE_LABELS,
@@ -571,6 +573,14 @@ export default function ClaimDetailPage({ params }: { params: Promise<{ id: stri
                 <ClaimTimeline events={auditLogs as Parameters<typeof ClaimTimeline>[0]["events"]} />
               </div>
             </GlassCard>
+
+            {/* Risk Score */}
+            {claim.policyholderID && (
+              <>
+                <RiskScoreWidget policyholderId={claim.policyholderID} />
+                <RiskScoreHistory policyholderId={claim.policyholderID} />
+              </>
+            )}
 
             {/* Documents */}
             <GlassCard>

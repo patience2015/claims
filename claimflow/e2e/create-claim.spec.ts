@@ -1,7 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 // Helper: log in as handler
-async function loginAsHandler(page: ReturnType<typeof test.info> extends never ? never : Parameters<Parameters<typeof test>[1]>[0]["page"]) {
+async function loginAsHandler(page: Page) {
   await page.goto("/login");
   await page.fill('[id="email"]', "handler@claimflow.fr");
   await page.fill('[id="password"]', "handler123");

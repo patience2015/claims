@@ -83,7 +83,7 @@ describe("GET /api/notifications", () => {
   });
 
   it("retourne 401 si non authentifié", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const res = await GET(new NextRequest("http://localhost/api/notifications"));
     expect(res.status).toBe(401);
   });
@@ -155,7 +155,7 @@ describe("GET /api/notifications/unread-count", () => {
   });
 
   it("retourne 401 si non authentifié", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const res = await getUnreadCount();
     expect(res.status).toBe(401);
   });
@@ -195,7 +195,7 @@ describe("PATCH /api/notifications/read-all", () => {
   });
 
   it("retourne 401 si non authentifié", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const res = await patchReadAll();
     expect(res.status).toBe(401);
   });
@@ -249,7 +249,7 @@ describe("PATCH /api/notifications/[id]/read", () => {
   });
 
   it("retourne 401 si non authentifié", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const res = await patchRead(makeRequest("notif-1"), makeParams("notif-1"));
     expect(res.status).toBe(401);
   });

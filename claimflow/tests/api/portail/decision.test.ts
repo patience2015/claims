@@ -77,7 +77,7 @@ describe("POST /api/portail/claims/[id]/decision", () => {
   });
 
   it("retourne 401 si non authentifié", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const res = await POST(makeRequest("claim-1", { decision: "ACCEPT" }), makeParams("claim-1"));
     expect(res.status).toBe(401);
   });

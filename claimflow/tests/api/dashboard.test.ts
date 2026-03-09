@@ -55,7 +55,7 @@ describe("GET /api/dashboard/stats", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/dashboard/stats");
     const res = await getStats(req);
     expect(res.status).toBe(401);
@@ -150,7 +150,7 @@ describe("GET /api/dashboard/charts", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/dashboard/charts");
     const res = await getCharts(req);
     expect(res.status).toBe(401);
@@ -213,15 +213,13 @@ describe("GET /api/dashboard/recent", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
-    const req = new NextRequest("http://localhost/api/dashboard/recent");
-    const res = await getRecent(req);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
+    const res = await getRecent();
     expect(res.status).toBe(401);
   });
 
   it("returns recent claims and audit logs", async () => {
-    const req = new NextRequest("http://localhost/api/dashboard/recent");
-    const res = await getRecent(req);
+    const res = await getRecent();
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.data).toHaveProperty("recentClaims");
@@ -232,8 +230,7 @@ describe("GET /api/dashboard/recent", () => {
     vi.mocked(auth).mockResolvedValue(
       mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
     );
-    const req = new NextRequest("http://localhost/api/dashboard/recent");
-    await getRecent(req);
+    await getRecent();
     expect(prisma.claim.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ OR: expect.arrayContaining([{ assignedToID: "handler-1" }]) }),

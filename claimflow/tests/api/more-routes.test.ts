@@ -69,22 +69,22 @@ describe("PATCH /api/admin/users/[id]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockAdminSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockAdminSession as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.user.findUnique).mockResolvedValue(
-      mockUser as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never
+      mockUser as unknown as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.user.update).mockResolvedValue({
       ...mockUser,
       name: "Updated Name",
-    } as ReturnType<typeof prisma.user.update> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.user.update> extends Promise<infer T> ? T : never);
     vi.mocked(prisma.auditLog.create).mockResolvedValue({
       id: "log-1",
-    } as ReturnType<typeof prisma.auditLog.create> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.auditLog.create> extends Promise<infer T> ? T : never);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/admin/users/user-1", {
       method: "PATCH",
       body: JSON.stringify({ name: "New Name" }),
@@ -121,7 +121,7 @@ describe("PATCH /api/admin/users/[id]", () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       ...mockUser,
       id: "admin-1",
-    } as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/admin/users/admin-1", {
       method: "PATCH",
       body: JSON.stringify({ active: false }),
@@ -171,15 +171,15 @@ describe("GET /api/policyholders/[id]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockHandlerSession as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.policyholder.findUnique).mockResolvedValue(
-      mockPolicyholder as ReturnType<typeof prisma.policyholder.findUnique> extends Promise<infer T> ? T : never
+      mockPolicyholder as unknown as ReturnType<typeof prisma.policyholder.findUnique> extends Promise<infer T> ? T : never
     );
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/policyholders/ph-1");
     const res = await getPolicyholder(req, makeParams("ph-1"));
     expect(res.status).toBe(401);
@@ -205,16 +205,16 @@ describe("PATCH /api/policyholders/[id]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockManagerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockManagerSession as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.policyholder.update).mockResolvedValue({
       id: "ph-1",
       firstName: "Jean-Pierre",
-    } as ReturnType<typeof prisma.policyholder.update> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.policyholder.update> extends Promise<infer T> ? T : never);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/policyholders/ph-1", {
       method: "PATCH",
       body: JSON.stringify({ firstName: "Jean-Pierre" }),
@@ -225,7 +225,7 @@ describe("PATCH /api/policyholders/[id]", () => {
 
   it("returns 403 for HANDLER", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockHandlerSession as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never
     );
     const req = new NextRequest("http://localhost/api/policyholders/ph-1", {
       method: "PATCH",

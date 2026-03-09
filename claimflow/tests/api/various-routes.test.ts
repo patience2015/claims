@@ -115,7 +115,7 @@ describe("GET /api/claims/[id]/comments", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/claims/claim-1/comments");
     const res = await getComments(req, makeParams("claim-1"));
     expect(res.status).toBe(401);
@@ -131,7 +131,7 @@ describe("GET /api/claims/[id]/comments", () => {
   it("returns comments for a claim", async () => {
     vi.mocked(prisma.comment.findMany).mockResolvedValue([
       { id: "cmt-1", content: "Test comment", isInternal: true, author: { id: "user-1", name: "Handler", email: "h@test.com", role: "HANDLER" }, createdAt: new Date() },
-    ] as ReturnType<typeof prisma.comment.findMany> extends Promise<infer T> ? T : never);
+    ] as unknown as ReturnType<typeof prisma.comment.findMany> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/claims/claim-1/comments");
     const res = await getComments(req, makeParams("claim-1"));
     expect(res.status).toBe(200);
@@ -154,11 +154,11 @@ describe("POST /api/claims/[id]/comments", () => {
       content: "Test comment",
       isInternal: true,
       author: {},
-    } as ReturnType<typeof prisma.comment.create> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.comment.create> extends Promise<infer T> ? T : never);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/claims/claim-1/comments", {
       method: "POST",
       body: JSON.stringify({ content: "Test" }),
@@ -228,7 +228,7 @@ describe("GET /api/policyholders", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/policyholders");
     const res = await getPolicyholders(req);
     expect(res.status).toBe(401);
@@ -277,11 +277,11 @@ describe("POST /api/policyholders", () => {
     vi.mocked(prisma.policyholder.create).mockResolvedValue({
       id: "ph-new",
       ...validPolicyholder,
-    } as ReturnType<typeof prisma.policyholder.create> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.policyholder.create> extends Promise<infer T> ? T : never);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/policyholders", {
       method: "POST",
       body: JSON.stringify(validPolicyholder),
@@ -303,7 +303,7 @@ describe("POST /api/policyholders", () => {
   it("returns 409 when policy number already in use", async () => {
     vi.mocked(prisma.policyholder.findUnique).mockResolvedValue({
       id: "existing",
-    } as ReturnType<typeof prisma.policyholder.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.policyholder.findUnique> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/policyholders", {
       method: "POST",
       body: JSON.stringify(validPolicyholder),
@@ -338,7 +338,7 @@ describe("GET /api/notifications/preferences", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const res = await getPreferences();
     expect(res.status).toBe(401);
   });
@@ -383,7 +383,7 @@ describe("PATCH /api/notifications/preferences", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost/api/notifications/preferences", {
       method: "PATCH",
       body: JSON.stringify([{ type: "CLAIM_ASSIGNED", emailEnabled: false, inAppEnabled: true }]),
@@ -529,7 +529,7 @@ describe("sendClaimStatusEmail", () => {
     const mockSendMail = vi.fn().mockResolvedValue(undefined);
     vi.mocked(nodemailer.default.createTransport).mockReturnValue({
       sendMail: mockSendMail,
-    } as ReturnType<typeof nodemailer.default.createTransport>);
+    } as unknown as ReturnType<typeof nodemailer.default.createTransport>);
 
     await sendClaimStatusEmail({
       claimId: "claim-1",
@@ -564,7 +564,7 @@ describe("sendNotificationEmail", () => {
     const mockSendMail = vi.fn().mockResolvedValue(undefined);
     vi.mocked(nodemailer.default.createTransport).mockReturnValue({
       sendMail: mockSendMail,
-    } as ReturnType<typeof nodemailer.default.createTransport>);
+    } as unknown as ReturnType<typeof nodemailer.default.createTransport>);
 
     await sendNotificationEmail("test@test.com", "Subject", "Body");
     expect(mockSendMail).toHaveBeenCalled();

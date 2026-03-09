@@ -40,6 +40,10 @@ import { isValidTransition } from "@/lib/claim-service";
 import { createNotification } from "@/lib/notification-service";
 import { sendClaimStatusEmail } from "@/lib/email-service";
 
+type AuthReturn = ReturnType<typeof auth> extends Promise<infer T> ? T : never;
+type ClaimReturn = ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never;
+type ClaimUpdateReturn = ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never;
+
 const mockManagerSession = {
   user: { id: "user-1", email: "manager@test.com", name: "Manager", role: "MANAGER" as const },
 };
@@ -75,20 +79,20 @@ describe("PATCH /api/claims/[id]/status", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockManagerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockManagerSession as unknown as AuthReturn
     );
     vi.mocked(prisma.claim.findUnique).mockResolvedValue(
-      mockClaim as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never
+      mockClaim as unknown as ClaimReturn
     );
     vi.mocked(prisma.claim.update).mockResolvedValue({
       ...mockClaim,
       status: "UNDER_REVIEW",
-    } as ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimUpdateReturn);
     vi.mocked(isValidTransition).mockReturnValue(true);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const res = await PATCH(makeRequest({ status: "UNDER_REVIEW" }), makeParams("claim-1"));
     expect(res.status).toBe(401);
   });
@@ -112,7 +116,7 @@ describe("PATCH /api/claims/[id]/status", () => {
 
   it("returns 403 when HANDLER tries to APPROVE", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockHandlerSession as unknown as AuthReturn
     );
     const res = await PATCH(makeRequest({ status: "APPROVED" }), makeParams("claim-1"));
     expect(res.status).toBe(403);
@@ -120,7 +124,7 @@ describe("PATCH /api/claims/[id]/status", () => {
 
   it("returns 403 when HANDLER tries to REJECT", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockHandlerSession as unknown as AuthReturn
     );
     const res = await PATCH(makeRequest({ status: "REJECTED" }), makeParams("claim-1"));
     expect(res.status).toBe(403);
@@ -145,7 +149,7 @@ describe("PATCH /api/claims/[id]/status", () => {
     vi.mocked(prisma.claim.update).mockResolvedValue({
       ...mockClaim,
       status: "APPROVED",
-    } as ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimUpdateReturn);
     await PATCH(makeRequest({ status: "APPROVED", approvedAmount: 5000 }), makeParams("claim-1"));
     expect(sendClaimStatusEmail).toHaveBeenCalledWith(
       expect.objectContaining({ status: "APPROVED" })
@@ -156,7 +160,7 @@ describe("PATCH /api/claims/[id]/status", () => {
     vi.mocked(prisma.claim.update).mockResolvedValue({
       ...mockClaim,
       status: "REJECTED",
-    } as ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimUpdateReturn);
     await PATCH(makeRequest({ status: "REJECTED" }), makeParams("claim-1"));
     expect(sendClaimStatusEmail).toHaveBeenCalledWith(
       expect.objectContaining({ status: "REJECTED" })
@@ -167,7 +171,7 @@ describe("PATCH /api/claims/[id]/status", () => {
     vi.mocked(prisma.claim.update).mockResolvedValue({
       ...mockClaim,
       status: "INFO_REQUESTED",
-    } as ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimUpdateReturn);
     await PATCH(makeRequest({ status: "INFO_REQUESTED" }), makeParams("claim-1"));
     expect(sendClaimStatusEmail).toHaveBeenCalledWith(
       expect.objectContaining({ status: "INFO_REQUESTED" })
@@ -192,12 +196,12 @@ describe("PATCH /api/claims/[id]/status", () => {
     vi.mocked(prisma.claim.findUnique).mockResolvedValue({
       ...mockClaim,
       assignedToID: null,
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimReturn);
     vi.mocked(prisma.claim.update).mockResolvedValue({
       ...mockClaim,
       assignedToID: null,
       status: "UNDER_REVIEW",
-    } as ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimUpdateReturn);
     await PATCH(makeRequest({ status: "UNDER_REVIEW" }), makeParams("claim-1"));
     expect(createNotification).not.toHaveBeenCalled();
   });

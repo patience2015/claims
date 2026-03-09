@@ -51,7 +51,8 @@ export type AuditAction =
   | "NETWORK_DISMISSED"
   | "NETWORK_ESCALATED"
   | "NETWORK_RECOMPUTED"
-  | "NETWORK_ARCHIVED";
+  | "NETWORK_ARCHIVED"
+  | "RISK_SCORE_COMPUTED";
 
 // Notification types
 export type NotificationType =
@@ -414,4 +415,52 @@ export interface FraudNetworkDetail extends FraudNetworkItem {
     createdAt: string;
     metadata?: string | null;
   }[];
+}
+
+// ─── Intelligence Prédictive — Scoring de risque ──────────────────────────────
+
+export type RiskLevel = "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+export type WeatherDataSource = "LIVE" | "CACHE" | "FALLBACK_NEUTRAL";
+
+export interface RiskScoreItem {
+  id: string;
+  policyholderId: string;
+  scoreGlobal: number;
+  riskLevel: RiskLevel;
+  factorHistorique: number;
+  factorProfil: number;
+  factorZone: number;
+  factorPeriode: number;
+  factorMeteo: number;
+  weatherDataSource: WeatherDataSource;
+  scoringNotes: string | null;
+  highFrequencyClaimant: boolean;
+  contractStatus: string;
+  computedAt: string;
+  expiresAt: string;
+  fromCache: boolean;
+}
+
+export interface RiskHeatmapPoint {
+  policyholderId: string;
+  firstName: string;
+  lastName: string;
+  lat: number | null;
+  lon: number | null;
+  address: string;
+  scoreGlobal: number;
+  riskLevel: RiskLevel;
+  computedAt: string;
+}
+
+export interface RiskScoreHistoryItem {
+  id: string;
+  scoreGlobal: number;
+  riskLevel: RiskLevel;
+  factorHistorique: number;
+  factorProfil: number;
+  factorZone: number;
+  factorPeriode: number;
+  factorMeteo: number;
+  computedAt: string;
 }

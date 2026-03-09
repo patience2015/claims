@@ -165,12 +165,12 @@ describe("GET /api/dashboard/team", () => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(mockManagerSession as AuthReturn);
     vi.mocked(prisma.user.findMany).mockResolvedValue(
-      mockUserWithClaims as ReturnType<typeof prisma.user.findMany> extends Promise<infer T> ? T : never
+      mockUserWithClaims as unknown as ReturnType<typeof prisma.user.findMany> extends Promise<infer T> ? T : never
     );
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const res = await getTeam(new NextRequest("http://localhost/api/dashboard/team"));
     expect(res.status).toBe(401);
     const body = await res.json();
@@ -285,13 +285,13 @@ describe("GET /api/dashboard/sla", () => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(mockManagerSession as AuthReturn);
     vi.mocked(prisma.claim.findMany).mockResolvedValue(
-      mockStaleClaims as ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never
+      mockStaleClaims as unknown as ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.claim.count).mockResolvedValue(5);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const res = await getSla();
     expect(res.status).toBe(401);
     const body = await res.json();
@@ -394,10 +394,10 @@ describe("POST /api/claims/bulk-assign", () => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(mockManagerSession as AuthReturn);
     vi.mocked(prisma.user.findUnique).mockResolvedValue(
-      mockTargetUser as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never
+      mockTargetUser as unknown as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.claim.findMany).mockResolvedValue(
-      mockExistingClaims as ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never
+      mockExistingClaims as unknown as ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.$transaction).mockResolvedValue(
       mockUpdatedClaims as Awaited<ReturnType<typeof prisma.$transaction>>
@@ -405,7 +405,7 @@ describe("POST /api/claims/bulk-assign", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const res = await postBulkAssign(
       makeRequest({ claimIds: ["claim-a"], assignToId: "handler-target" })
     );
@@ -552,7 +552,7 @@ describe("POST /api/claims/bulk-assign", () => {
     );
     // $transaction est appelé avec un tableau dont la longueur correspond au nombre de sinistres trouvés
     expect(prisma.$transaction).toHaveBeenCalledTimes(1);
-    const [transactionArg] = vi.mocked(prisma.$transaction).mock.calls[0] as [unknown[]];
+    const [transactionArg] = vi.mocked(prisma.$transaction).mock.calls[0] as unknown as [unknown[]];
     expect(transactionArg).toHaveLength(2);
   });
 

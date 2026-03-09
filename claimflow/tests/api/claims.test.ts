@@ -64,13 +64,13 @@ const mockClaims = [
 describe("GET /api/claims", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue(mockSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
-    vi.mocked(prisma.claim.findMany).mockResolvedValue(mockClaims as ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never);
+    vi.mocked(auth).mockResolvedValue(mockSession as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
+    vi.mocked(prisma.claim.findMany).mockResolvedValue(mockClaims as unknown as ReturnType<typeof prisma.claim.findMany> extends Promise<infer T> ? T : never);
     vi.mocked(prisma.claim.count).mockResolvedValue(1);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost:3000/api/claims");
     const res = await GET(req);
     expect(res.status).toBe(401);
@@ -145,12 +145,12 @@ describe("GET /api/claims", () => {
 describe("POST /api/claims", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue(mockSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
-    vi.mocked(prisma.claim.create).mockResolvedValue(mockClaims[0] as ReturnType<typeof prisma.claim.create> extends Promise<infer T> ? T : never);
+    vi.mocked(auth).mockResolvedValue(mockSession as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
+    vi.mocked(prisma.claim.create).mockResolvedValue(mockClaims[0] as unknown as ReturnType<typeof prisma.claim.create> extends Promise<infer T> ? T : never);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const req = new NextRequest("http://localhost:3000/api/claims", {
       method: "POST",
       body: JSON.stringify({}),

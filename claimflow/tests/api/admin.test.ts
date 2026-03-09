@@ -38,6 +38,11 @@ import { GET as getAuditLogs } from "@/app/api/admin/audit-logs/route";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
+type AuthReturn = ReturnType<typeof auth> extends Promise<infer T> ? T : never;
+type UserFindManyReturn = ReturnType<typeof prisma.user.findMany> extends Promise<infer T> ? T : never;
+type UserFindUniqueReturn = ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never;
+type UserCreateReturn = ReturnType<typeof prisma.user.create> extends Promise<infer T> ? T : never;
+
 const mockAdminSession = {
   user: { id: "admin-1", email: "admin@test.com", name: "Admin", role: "ADMIN" as const },
 };
@@ -61,15 +66,15 @@ describe("GET /api/admin/users", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockAdminSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockAdminSession as unknown as AuthReturn
     );
     vi.mocked(prisma.user.findMany).mockResolvedValue(
-      mockUsers as ReturnType<typeof prisma.user.findMany> extends Promise<infer T> ? T : never
+      mockUsers as unknown as UserFindManyReturn
     );
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const req = new NextRequest("http://localhost/api/admin/users");
     const res = await getUsers(req);
     expect(res.status).toBe(401);
@@ -77,7 +82,7 @@ describe("GET /api/admin/users", () => {
 
   it("returns 403 for HANDLER", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockHandlerSession as unknown as AuthReturn
     );
     const req = new NextRequest("http://localhost/api/admin/users");
     const res = await getUsers(req);
@@ -94,7 +99,7 @@ describe("GET /api/admin/users", () => {
 
   it("MANAGER only sees HANDLERs", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockManagerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockManagerSession as unknown as AuthReturn
     );
     const req = new NextRequest("http://localhost/api/admin/users");
     await getUsers(req);
@@ -129,7 +134,7 @@ describe("POST /api/admin/users", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockAdminSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockAdminSession as unknown as AuthReturn
     );
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
     vi.mocked(prisma.user.create).mockResolvedValue({
@@ -139,11 +144,11 @@ describe("POST /api/admin/users", () => {
       role: "HANDLER",
       active: true,
       createdAt: new Date(),
-    } as ReturnType<typeof prisma.user.create> extends Promise<infer T> ? T : never);
+    } as unknown as UserCreateReturn);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const req = new NextRequest("http://localhost/api/admin/users", {
       method: "POST",
       body: JSON.stringify(validUser),
@@ -154,7 +159,7 @@ describe("POST /api/admin/users", () => {
 
   it("returns 403 for non-ADMIN", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockManagerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockManagerSession as unknown as AuthReturn
     );
     const req = new NextRequest("http://localhost/api/admin/users", {
       method: "POST",
@@ -179,7 +184,7 @@ describe("POST /api/admin/users", () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: "existing",
       email: "new@test.com",
-    } as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as UserFindUniqueReturn);
     const req = new NextRequest("http://localhost/api/admin/users", {
       method: "POST",
       body: JSON.stringify(validUser),
@@ -208,14 +213,14 @@ describe("GET /api/admin/audit-logs", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockAdminSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockAdminSession as unknown as AuthReturn
     );
     vi.mocked(prisma.auditLog.findMany).mockResolvedValue([]);
     vi.mocked(prisma.auditLog.count).mockResolvedValue(0);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const req = new NextRequest("http://localhost/api/admin/audit-logs");
     const res = await getAuditLogs(req);
     expect(res.status).toBe(401);
@@ -223,7 +228,7 @@ describe("GET /api/admin/audit-logs", () => {
 
   it("returns 403 for HANDLER", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockHandlerSession as unknown as AuthReturn
     );
     const req = new NextRequest("http://localhost/api/admin/audit-logs");
     const res = await getAuditLogs(req);
@@ -242,7 +247,7 @@ describe("GET /api/admin/audit-logs", () => {
 
   it("returns audit logs for MANAGER", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockManagerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockManagerSession as unknown as AuthReturn
     );
     const req = new NextRequest("http://localhost/api/admin/audit-logs");
     const res = await getAuditLogs(req);

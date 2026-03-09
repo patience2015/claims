@@ -33,6 +33,11 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { createNotification } from "@/lib/notification-service";
 
+type AuthReturn = ReturnType<typeof auth> extends Promise<infer T> ? T : never;
+type ClaimReturn = ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never;
+type ClaimUpdateReturn = ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never;
+type UserReturn = ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never;
+
 const mockManagerSession = {
   user: { id: "mgr-1", email: "manager@test.com", name: "Manager", role: "MANAGER" as const },
 };
@@ -68,13 +73,13 @@ describe("POST /api/claims/[id]/assign", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(
-      mockManagerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockManagerSession as unknown as AuthReturn
     );
     vi.mocked(prisma.claim.findUnique).mockResolvedValue(
-      mockClaim as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never
+      mockClaim as unknown as ClaimReturn
     );
     vi.mocked(prisma.user.findUnique).mockResolvedValue(
-      mockTargetUser as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never
+      mockTargetUser as unknown as UserReturn
     );
     vi.mocked(prisma.claim.update).mockResolvedValue({
       ...mockClaim,
@@ -83,11 +88,11 @@ describe("POST /api/claims/[id]/assign", () => {
       policyholder: {},
       assignedTo: mockTargetUser,
       createdBy: {},
-    } as ReturnType<typeof prisma.claim.update> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimUpdateReturn);
   });
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as AuthReturn);
     const res = await POST(
       makeRequest({ userId: "cjld2cyuq0000t3rmniod1foy" }),
       makeParams("claim-1")
@@ -97,7 +102,7 @@ describe("POST /api/claims/[id]/assign", () => {
 
   it("returns 403 for HANDLER role", async () => {
     vi.mocked(auth).mockResolvedValue(
-      mockHandlerSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
+      mockHandlerSession as unknown as AuthReturn
     );
     const res = await POST(
       makeRequest({ userId: "cjld2cyuq0000t3rmniod1foy" }),
@@ -133,7 +138,7 @@ describe("POST /api/claims/[id]/assign", () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       ...mockTargetUser,
       active: false,
-    } as ReturnType<typeof prisma.user.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as UserReturn);
     const res = await POST(
       makeRequest({ userId: "cjld2cyuq0000t3rmniod1foy" }),
       makeParams("claim-1")
@@ -161,7 +166,7 @@ describe("POST /api/claims/[id]/assign", () => {
     vi.mocked(prisma.claim.findUnique).mockResolvedValue({
       ...mockClaim,
       status: "UNDER_REVIEW",
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ClaimReturn);
     await POST(makeRequest({ userId: "cjld2cyuq0000t3rmniod1foy" }), makeParams("claim-1"));
     expect(prisma.claim.update).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -50,8 +51,13 @@ model Policyholder {
 
   userId          String?  @unique
   user            User?    @relation("UserPolicyholder", fields: [userId], references: [id])
+  // Geolocation
+  latitude        Float?
+  longitude       Float?
 
   claims          Claim[]
+  riskScores      RiskScore[]
+  riskAlertLogs   RiskAlertLog[]
 }
 
 model Claim {
@@ -261,4 +267,53 @@ model FraudNetworkAudit {
   network FraudNetwork @relation(fields: [networkId], references: [id], onDelete: Cascade)
 
   @@index([networkId])
+}
+
+model RiskScore {
+  id                    String       @id @default(cuid())
+  policyholderId        String
+  policyholder          Policyholder @relation(fields: [policyholderId], references: [id], onDelete: Cascade)
+  scoreGlobal           Int
+  riskLevel             String
+  factorHistorique      Float
+  factorProfil          Float
+  factorZone            Float
+  factorPeriode         Float
+  factorMeteo           Float
+  weatherDataSource     String       @default("FALLBACK_NEUTRAL")
+  scoringNotes          String?
+  highFrequencyClaimant Boolean      @default(false)
+  contractStatus        String
+  computedAt            DateTime     @default(now())
+  expiresAt             DateTime
+
+  @@index([policyholderId])
+  @@index([expiresAt])
+  @@index([riskLevel])
+}
+
+model WeatherCache {
+  id           String   @id @default(cuid())
+  latRounded   Float
+  lonRounded   Float
+  forecastJson String
+  meteoScore   Float
+  fetchedAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  @@unique([latRounded, lonRounded])
+}
+
+model RiskAlertLog {
+  id                  String       @id @default(cuid())
+  policyholderId      String
+  policyholder        Policyholder @relation(fields: [policyholderId], references: [id], onDelete: Cascade)
+  alertType           String
+  previousLevel       String
+  newLevel            String
+  emailSentAt         DateTime?
+  emailNotificationId String?
+  createdAt           DateTime     @default(now())
+
+  @@index([policyholderId])
 }

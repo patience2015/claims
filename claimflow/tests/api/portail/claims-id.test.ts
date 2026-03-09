@@ -60,12 +60,12 @@ describe("GET /api/portail/claims/[id]", () => {
       mockPolicyholderSession as ReturnType<typeof auth> extends Promise<infer T> ? T : never
     );
     vi.mocked(prisma.claim.findUnique).mockResolvedValue(
-      mockClaim as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never
+      mockClaim as unknown as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never
     );
   });
 
   it("retourne 401 si non authentifié", async () => {
-    vi.mocked(auth).mockResolvedValue(null);
+    vi.mocked(auth).mockResolvedValue(null as unknown as ReturnType<typeof auth> extends Promise<infer T> ? T : never);
     const res = await GET(makeRequest("claim-1"), makeParams("claim-1"));
     expect(res.status).toBe(401);
   });
@@ -88,7 +88,7 @@ describe("GET /api/portail/claims/[id]", () => {
     vi.mocked(prisma.claim.findUnique).mockResolvedValue({
       ...mockClaim,
       policyholderID: "autre-ph",
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
     const res = await GET(makeRequest("claim-1"), makeParams("claim-1"));
     expect(res.status).toBe(403);
     const data = await res.json();
@@ -114,7 +114,7 @@ describe("GET /api/portail/claims/[id]", () => {
     vi.mocked(prisma.claim.findUnique).mockResolvedValue({
       ...mockClaim,
       status: "INFO_REQUESTED",
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
     const res = await GET(makeRequest("claim-1"), makeParams("claim-1"));
     const data = await res.json();
     expect(data.data.canUpload).toBe(true);
@@ -124,7 +124,7 @@ describe("GET /api/portail/claims/[id]", () => {
     vi.mocked(prisma.claim.findUnique).mockResolvedValue({
       ...mockClaim,
       status: "CLOSED",
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
     const res = await GET(makeRequest("claim-1"), makeParams("claim-1"));
     const data = await res.json();
     expect(data.data.canUpload).toBe(false);
@@ -135,7 +135,7 @@ describe("GET /api/portail/claims/[id]", () => {
       ...mockClaim,
       status: "APPROVED",
       approvedAmount: 1500,
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
     const res = await GET(makeRequest("claim-1"), makeParams("claim-1"));
     const data = await res.json();
     expect(data.data.canDecide).toBe(true);
@@ -146,7 +146,7 @@ describe("GET /api/portail/claims/[id]", () => {
       ...mockClaim,
       status: "APPROVED",
       approvedAmount: null,
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
     const res = await GET(makeRequest("claim-1"), makeParams("claim-1"));
     const data = await res.json();
     expect(data.data.canDecide).toBe(false);
@@ -158,7 +158,7 @@ describe("GET /api/portail/claims/[id]", () => {
       documents: [
         { id: "doc-1", filename: "constat.pdf", mimeType: "application/pdf", size: 1024, url: "/uploads/claim-1/constat.pdf", createdAt: new Date() },
       ],
-    } as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
+    } as unknown as ReturnType<typeof prisma.claim.findUnique> extends Promise<infer T> ? T : never);
     const res = await GET(makeRequest("claim-1"), makeParams("claim-1"));
     const data = await res.json();
     expect(data.data.documents).toHaveLength(1);
