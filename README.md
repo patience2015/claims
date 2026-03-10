@@ -47,11 +47,11 @@ Ouvrir [http://localhost:3000](http://localhost:3000)
 **Identifiants** : numéro de police + adresse email (pas de mot de passe classique)
 
 Exemple de comptes seedés :
-| Numéro de police | Email |
-|-----------------|-------|
-| POL-2024-001 | alice.martin@email.fr |
-| POL-2024-002 | bob.dupont@email.fr |
-| POL-2024-003 | claire.bernard@email.fr |
+| Numéro de police | Nom | Email |
+|-----------------|-----|-------|
+| POL-2024-001 | Marie Dupont | marie.dupont@email.fr |
+| POL-2024-002 | Jean Martin | jean.martin@email.fr |
+| POL-2024-003 | Sophie Bernard | sophie.bernard@email.fr |
 
 **Ce que l'assuré peut faire :**
 1. `Mes sinistres` — liste de tous ses sinistres avec statut
