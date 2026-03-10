@@ -7,6 +7,7 @@ import type { NextAuthConfig } from "next-auth";
 import { UserRole } from "@/types";
 
 export const authConfig = {
+  trustHost: true,
   session: {
     strategy: "jwt",
     maxAge: 8 * 60 * 60,
