@@ -30,7 +30,22 @@
       "mcp__stitch__list_screens",
       "mcp__stitch__edit_screens",
       "WebFetch(domain:contribution.usercontent.google.com)",
-      "mcp__stitch__get_screen"
+      "mcp__stitch__get_screen",
+      "WebFetch(domain:api.supabase.com)",
+      "Bash(nslookup:*)",
+      "Bash(psql:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.ngumlupgzlbdovryqeuv:1x1WFlYARJiHTqaU@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require\" npx prisma:*)",
+      "Bash(npx supabase:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_3257257010457ae74f4a6b2c2da971f6a084fec1 npx supabase:*)",
+      "Bash(head:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:1x1WFlYARJiHTqaU@aws-0-eu-west-1.pooler.supabase.com:6543/postgres\" npx prisma:*)",
+      "Bash(do:*)",
+      "WebFetch(domain:supabase.com)",
+      "Read(//c/Users/yvesb/.supabase/**)",
+      "Read(//c/Users/yvesb/**)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.ngumlupgzlbdovryqeuv:1x1WFlYARJiHTqaU@aws-0-eu-west-1.pooler.supabase.com:6543/defaultdb\" npx prisma:*)",
+      "Bash(python3:*)",
+      "Bash(mkdir:*)"
     ]
   }
 }

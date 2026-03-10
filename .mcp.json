@@ -2,14 +2,28 @@
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     },
     "stitch": {
       "command": "npx",
-      "args": ["@_davideast/stitch-mcp", "proxy"],
+      "args": [
+        "@_davideast/stitch-mcp",
+        "proxy"
+      ],
       "env": {
         "STITCH_ACCESS_TOKEN": "AQ.Ab8RN6JXoeBtZ3YQq1gNF5jXw5nNTGLgeAs1AJMAaftBOpaNlg"
       }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_3257257010457ae74f4a6b2c2da971f6a084fec1"
+      ]
     }
   }
 }

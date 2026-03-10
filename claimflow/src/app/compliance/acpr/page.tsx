@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  Eye,
+  Trash2,
 } from "lucide-react";
 
 interface AcprConfig {
@@ -30,10 +32,12 @@ interface AcprConfig {
 interface AcprReport {
   id: string;
   reportNumber: string;
-  period: string;
+  periodStart: string;
+  periodEnd: string;
   status: string;
   generatedAt: string | null;
-  hashSha256: string | null;
+  fileHash: string | null;
+  fileUrl: string | null;
   generatedBy?: { name: string } | null;
 }
 
@@ -69,6 +73,9 @@ export default function AcprPage() {
   const [configOpen, setConfigOpen] = useState(false);
   const [configSaving, setConfigSaving] = useState(false);
   const [configMsg, setConfigMsg] = useState<string | null>(null);
+
+  // Delete state
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Generate state
   const currentYear = new Date().getFullYear();
@@ -144,6 +151,17 @@ export default function AcprPage() {
       setGenMsg("Erreur réseau");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleDelete = async (id: string, reportNumber: string) => {
+    if (!confirm(`Supprimer le rapport ${reportNumber} ? Cette action est irréversible.`)) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/compliance/acpr/reports/${id}`, { method: "DELETE" });
+      if (res.ok) await fetchReports();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -348,12 +366,16 @@ export default function AcprPage() {
                 <tbody className="divide-y divide-slate-50">
                   {reports.map((report) => {
                     const badge = STATUS_BADGE[report.status] ?? { label: report.status, cls: "bg-slate-100 text-slate-600" };
+                    const hasFile = !!report.fileUrl;
+                    const period = report.periodStart
+                      ? `${new Date(report.periodStart).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`
+                      : report.reportNumber;
                     return (
                       <tr key={report.id} className="hover:bg-slate-50/40 transition-colors">
                         <td className="px-6 py-4">
                           <span className="font-mono text-xs font-bold text-indigo-600">{report.reportNumber}</span>
                         </td>
-                        <td className="px-6 py-4 text-slate-700">{report.period}</td>
+                        <td className="px-6 py-4 text-slate-700 capitalize">{period}</td>
                         <td className="px-6 py-4 text-slate-500 text-xs">{formatDate(report.generatedAt)}</td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badge.cls}`}>
@@ -361,22 +383,50 @@ export default function AcprPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          {report.hashSha256 ? (
-                            <span className="font-mono text-xs text-slate-400" title={report.hashSha256}>
-                              {report.hashSha256.slice(0, 16)}…
+                          {report.fileHash ? (
+                            <span className="font-mono text-xs text-slate-400" title={report.fileHash}>
+                              {report.fileHash.slice(0, 16)}…
                             </span>
                           ) : "—"}
                         </td>
                         <td className="px-6 py-4">
-                          {report.status === "GENERATED" && (
-                            <a
-                              href={`/api/compliance/acpr/reports/${report.id}/download`}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition-colors"
+                          <div className="flex items-center gap-2">
+                            {hasFile && (
+                              <>
+                                <a
+                                  href={`/api/compliance/acpr/reports/${report.id}/download?inline=true`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Visualiser"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-cyan-50 text-cyan-700 text-xs font-semibold hover:bg-cyan-100 transition-colors"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                  Visualiser
+                                </a>
+                                <a
+                                  href={`/api/compliance/acpr/reports/${report.id}/download`}
+                                  title="Télécharger"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition-colors"
+                                >
+                                  <Download className="h-3.5 w-3.5" />
+                                  Télécharger
+                                </a>
+                              </>
+                            )}
+                            <button
+                              onClick={() => handleDelete(report.id, report.reportNumber)}
+                              disabled={deletingId === report.id}
+                              title="Supprimer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition-colors disabled:opacity-50"
                             >
-                              <Download className="h-3.5 w-3.5" />
-                              Télécharger
-                            </a>
-                          )}
+                              {deletingId === report.id ? (
+                                <Spinner size="sm" className="text-red-600" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                              Supprimer
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

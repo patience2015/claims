@@ -8,7 +8,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
@@ -18,6 +18,7 @@ export async function GET(
   }
 
   const { id } = await params;
+  const inline = req.nextUrl.searchParams.get("inline") === "true";
 
   try {
     const report = await prisma.acprReport.findUnique({ where: { id } });
@@ -35,7 +36,7 @@ export async function GET(
     const fileBuffer = fs.readFileSync(absPath);
 
     await createAuditLog({
-      action: "ACPR_REPORT_DOWNLOADED",
+      action: inline ? "ACPR_REPORT_VIEWED" : "ACPR_REPORT_DOWNLOADED",
       entityType: "AcprReport",
       entityId: report.id,
       after: { reportNumber: report.reportNumber },
@@ -46,7 +47,9 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${report.reportNumber}.pdf"`,
+        "Content-Disposition": inline
+          ? `inline; filename="${report.reportNumber}.pdf"`
+          : `attachment; filename="${report.reportNumber}.pdf"`,
         "Content-Length": String(fileBuffer.length),
       },
     });

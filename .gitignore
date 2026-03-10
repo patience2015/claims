@@ -131,3 +131,8 @@ files.zip
 claimflow/.next/
 claimflow/uploads/
 claimflow/node_modules/
+claimflow/prisma/dev.db 
+*.stackdump
+tsconfig.tsbuildinfo
+.agentpack  
+environnement.json
