@@ -7,7 +7,11 @@ import Groq from "groq-sdk";
 import { LETTER_SYSTEM_PROMPT, letterUserPrompt } from "@/lib/prompts/letter";
 import { LetterType } from "@/types";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let _groq: Groq | null = null;
+function getGroq(): Groq {
+  if (!_groq) _groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  return _groq;
+}
 
 // Robust JSON extraction: handles markdown code blocks, bare JSON, literal newlines in strings
 function extractLetterJSON(text: string, letterType: LetterType) {
@@ -112,7 +116,7 @@ export async function POST(req: NextRequest) {
           let fullText = "";
 
           try {
-            const stream = await groq.chat.completions.create({
+            const stream = await getGroq().chat.completions.create({
               model: "llama-3.1-8b-instant",
               max_tokens: 600,
               stream: true,
@@ -180,7 +184,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Non-streaming fallback ──────────────────────────────────────────
-    const response = await groq.chat.completions.create({
+    const response = await getGroq().chat.completions.create({
       model: "llama-3.1-8b-instant",
       max_tokens: 600,
       messages: [
