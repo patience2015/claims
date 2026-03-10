@@ -72,7 +72,8 @@ jobs:
   docker:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DOCKER_USERNAME != ''
+    continue-on-error: true
 
     steps:
       - name: Checkout
