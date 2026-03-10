@@ -4,7 +4,27 @@ Plateforme de gestion des sinistres automobiles augmentée par IA.
 
 ---
 
-## Démarrage rapide
+## URL de production
+
+> **Application déployée sur Vercel :**
+> https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app
+
+| Page | URL | Rôle requis |
+|------|-----|-------------|
+| Login staff | [/login](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/login) | Handler / Manager / Admin |
+| Login assuré | [/portail/login](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/portail/login) | Policyholder |
+| Liste sinistres | [/claims](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/claims) | Handler+ |
+| Nouveau sinistre | [/claims/new](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/claims/new) | Handler+ |
+| Dashboard | [/dashboard](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/dashboard) | Manager+ |
+| Réseaux fraude | [/fraud-networks](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/fraud-networks) | Manager+ |
+| Admin | [/admin](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/admin) | Admin |
+| Notifications | [/notifications](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/notifications) | Handler+ |
+| Mes sinistres (assuré) | [/portail/mes-sinistres](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/portail/mes-sinistres) | Policyholder |
+| Conformité | [/compliance](https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/compliance) | Manager+ |
+
+---
+
+## Démarrage en local
 
 ```bash
 cd /c/projets/claims/claimflow
@@ -20,7 +40,9 @@ Ouvrir [http://localhost:3000](http://localhost:3000)
 ### Assuré (Policyholder)
 > Je veux consulter mon sinistre ou accepter une proposition d'indemnisation
 
-**URL de connexion** → `http://localhost:3000/portail/login`
+**URL de connexion**
+- Production → https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/portail/login
+- Local → `http://localhost:3000/portail/login`
 
 **Identifiants** : numéro de police + adresse email (pas de mot de passe classique)
 
@@ -42,7 +64,9 @@ Exemple de comptes seedés :
 ### Gestionnaire (Handler)
 > Je traite les sinistres au quotidien
 
-**URL de connexion** → `http://localhost:3000/login`
+**URL de connexion**
+- Production → https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/login
+- Local → `http://localhost:3000/login`
 
 | Email | Mot de passe |
 |-------|-------------|
@@ -69,7 +93,9 @@ Exemple de comptes seedés :
 ### Manager
 > Je pilote l'équipe et surveille les fraudes
 
-**URL de connexion** → `http://localhost:3000/login`
+**URL de connexion**
+- Production → https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/login
+- Local → `http://localhost:3000/login`
 
 | Email | Mot de passe |
 |-------|-------------|
@@ -92,7 +118,9 @@ Exemple de comptes seedés :
 ### Administrateur
 > Je gère les utilisateurs et la configuration
 
-**URL de connexion** → `http://localhost:3000/login`
+**URL de connexion**
+- Production → https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/login
+- Local → `http://localhost:3000/login`
 
 | Email | Mot de passe |
 |-------|-------------|
@@ -128,7 +156,7 @@ Exemple de comptes seedés :
 5. Si score > 70 → escalade automatique au manager
 
 ### Consulter un sinistre en tant qu'assuré
-1. Aller sur `http://localhost:3000/portail/login`
+1. Aller sur https://claimflow-k4ktj7nbl-patiences-projects-13212acd.vercel.app/portail/login
 2. Saisir numéro de police (ex: `POL-2024-001`) et email (`alice.martin@email.fr`)
 3. La liste `/portail/mes-sinistres` affiche tous ses sinistres
 4. Cliquer sur un sinistre → voir statut, documents, montant proposé
