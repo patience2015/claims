@@ -458,15 +458,15 @@ export interface RiskScoreItem {
 }
 
 export interface RiskHeatmapPoint {
-  policyholderId: string;
-  firstName: string;
-  lastName: string;
+  claimId: string;
+  claimNumber: string;
+  type: string;
+  incidentLocation: string;
   lat: number | null;
   lon: number | null;
-  address: string;
-  scoreGlobal: number;
+  fraudScore: number;
   riskLevel: RiskLevel;
-  computedAt: string;
+  incidentDate: string;
 }
 
 export interface RiskScoreHistoryItem {

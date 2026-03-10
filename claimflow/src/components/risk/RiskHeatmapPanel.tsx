@@ -18,6 +18,16 @@ const DOT_SIZES: Record<RiskLevel, number> = {
   CRITICAL: 8,
 };
 
+const CLAIM_TYPE_LABELS: Record<string, string> = {
+  COLLISION: "Collision",
+  THEFT: "Vol",
+  FIRE: "Incendie",
+  GLASS: "Bris de glace",
+  VANDALISM: "Vandalisme",
+  NATURAL_DISASTER: "Catastrophe naturelle",
+  OTHER: "Autre",
+};
+
 // France bounding box (approx)
 const FRANCE_BOUNDS = { minLat: 41.3, maxLat: 51.1, minLon: -5.2, maxLon: 9.6 };
 
@@ -39,7 +49,7 @@ const FILTER_OPTIONS: { value: string; label: string }[] = [
 export function RiskHeatmapPanel() {
   const [points, setPoints] = useState<RiskHeatmapPoint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("CRITICAL,HIGH");
+  const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<RiskHeatmapPoint | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -72,7 +82,7 @@ export function RiskHeatmapPanel() {
             <h2 className="text-sm font-bold text-slate-800" style={{ fontFamily: "Space Grotesk, Inter, sans-serif" }}>
               Carte de risque géographique
             </h2>
-            <p className="text-[10px] text-slate-400">{geoPoints.length} assurés géolocalisés</p>
+            <p className="text-[10px] text-slate-400">{geoPoints.length} sinistre(s) localisés sur {points.length} total</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -115,8 +125,9 @@ export function RiskHeatmapPanel() {
                 const { x, y } = projectPoint(p.lat!, p.lon!, SVG_W, SVG_H);
                 const r = DOT_SIZES[p.riskLevel] ?? 5;
                 const color = DOT_COLORS[p.riskLevel] ?? "#64748b";
+                const isSelected = selected?.claimId === p.claimId;
                 return (
-                  <g key={p.policyholderId} onClick={() => setSelected(p)} className="cursor-pointer">
+                  <g key={p.claimId} onClick={() => setSelected(isSelected ? null : p)} className="cursor-pointer">
                     {p.riskLevel === "CRITICAL" && (
                       <circle cx={x} cy={y} r={r + 4} fill={color} opacity="0.15">
                         <animate attributeName="r" values={`${r + 4};${r + 8};${r + 4}`} dur="2s" repeatCount="indefinite" />
@@ -124,11 +135,11 @@ export function RiskHeatmapPanel() {
                       </circle>
                     )}
                     <circle
-                      cx={x} cy={y} r={r}
+                      cx={x} cy={y} r={isSelected ? r + 2 : r}
                       fill={color}
-                      stroke="white"
-                      strokeWidth="1.5"
-                      opacity="0.85"
+                      stroke={isSelected ? "white" : "white"}
+                      strokeWidth={isSelected ? 2.5 : 1.5}
+                      opacity="0.9"
                     />
                   </g>
                 );
@@ -153,43 +164,45 @@ export function RiskHeatmapPanel() {
 
           {noGeoCount > 0 && (
             <p className="text-[10px] text-slate-400 mt-2 text-center">
-              {noGeoCount} assuré(s) sans coordonnées GPS non affichés
+              {noGeoCount} sinistre(s) avec lieu non reconnu non affichés
             </p>
           )}
         </div>
 
-        {/* Sidebar: selected or top list */}
+        {/* Sidebar */}
         <div className="w-56 border-l border-slate-100 p-4 flex flex-col gap-3">
           {selected ? (
             <div>
               <button onClick={() => setSelected(null)} className="text-[10px] text-indigo-500 hover:underline mb-3">← Retour</button>
               <div className="space-y-2">
-                <p className="font-semibold text-slate-800 text-sm">{selected.firstName} {selected.lastName}</p>
+                <p className="font-semibold text-slate-800 text-xs">{selected.claimNumber}</p>
+                <p className="text-[10px] text-slate-500">{CLAIM_TYPE_LABELS[selected.type] ?? selected.type}</p>
                 <RiskBadge level={selected.riskLevel} size="sm" />
                 <div className="text-[10px] text-slate-500 space-y-1 mt-2">
-                  <p><span className="font-medium">Score :</span> {selected.scoreGlobal}/100</p>
-                  <p><span className="font-medium">Adresse :</span> {selected.address || "—"}</p>
-                  <p><span className="font-medium">Calculé :</span> {new Date(selected.computedAt).toLocaleDateString("fr-FR")}</p>
+                  <p><span className="font-medium">Score fraude :</span> {selected.fraudScore}/100</p>
+                  <p><span className="font-medium">Lieu :</span> {selected.incidentLocation}</p>
+                  <p><span className="font-medium">Date :</span> {new Date(selected.incidentDate).toLocaleDateString("fr-FR")}</p>
                 </div>
               </div>
             </div>
           ) : (
             <>
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Top risques</p>
+              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Top sinistres</p>
               <div className="space-y-2 flex-1 overflow-y-auto max-h-96">
                 {points.slice(0, 15).map((p) => (
                   <button
-                    key={p.policyholderId}
+                    key={p.claimId}
                     onClick={() => setSelected(p)}
                     className="w-full text-left p-2 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
                   >
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="text-[10px] font-semibold text-slate-700 truncate">
-                        {p.firstName} {p.lastName}
+                        {p.claimNumber}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-600 ml-1 shrink-0">{p.scoreGlobal}</span>
+                      <span className="text-[10px] font-bold text-slate-600 ml-1 shrink-0">{p.fraudScore}</span>
                     </div>
                     <RiskBadge level={p.riskLevel} size="sm" />
+                    <p className="text-[9px] text-slate-400 mt-0.5 truncate">{CLAIM_TYPE_LABELS[p.type] ?? p.type}</p>
                   </button>
                 ))}
               </div>

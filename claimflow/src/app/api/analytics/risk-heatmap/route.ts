@@ -9,10 +9,61 @@ const QuerySchema = z.object({
   riskLevel: z
     .string()
     .optional()
-    .transform((val) => (val ? val.split(",").filter((v) => RISK_LEVELS.includes(v as typeof RISK_LEVELS[number])) : undefined))
+    .transform((val) =>
+      val ? val.split(",").filter((v) => RISK_LEVELS.includes(v as (typeof RISK_LEVELS)[number])) : undefined
+    )
     .transform((arr) => (arr && arr.length > 0 ? arr : undefined)),
   limit: z.coerce.number().min(1).max(500).default(200),
 });
+
+// Coordonnées approximatives des principales villes françaises
+const CITY_COORDS: Record<string, [number, number]> = {
+  paris: [48.8566, 2.3522],
+  lyon: [45.7640, 4.8357],
+  marseille: [43.2965, 5.3698],
+  toulouse: [43.6047, 1.4442],
+  nice: [43.7102, 7.2620],
+  nantes: [47.2184, -1.5536],
+  bordeaux: [44.8378, -0.5792],
+  strasbourg: [48.5734, 7.7521],
+  lille: [50.6292, 3.0573],
+  rennes: [48.1173, -1.6778],
+  grenoble: [45.1885, 5.7245],
+  montpellier: [43.6108, 3.8767],
+  rouen: [49.4432, 1.0993],
+  reims: [49.2583, 4.0317],
+  metz: [49.1193, 6.1727],
+  dijon: [47.3220, 5.0415],
+  angers: [47.4784, -0.5632],
+  le_havre: [49.4938, 0.1079],
+  clermont: [45.7797, 3.0863],
+  tours: [47.3941, 0.6848],
+};
+
+/**
+ * Extrait les coordonnées depuis une adresse texte en cherchant le nom d'une ville connue.
+ * Retourne null si aucune ville n'est reconnue.
+ */
+function extractCoords(location: string): [number, number] | null {
+  const normalized = location.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  for (const [city, coords] of Object.entries(CITY_COORDS)) {
+    if (normalized.includes(city.replace("_", " "))) {
+      return coords;
+    }
+  }
+  return null;
+}
+
+/**
+ * Jitter déterministe basé sur l'id pour éviter l'empilement des points d'une même ville.
+ * Utilise un hash simple sur les derniers caractères de l'id.
+ */
+function deterministicJitter(id: string, range = 0.12): [number, number] {
+  const hash = id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const dLat = ((hash * 13) % 200) / 1000 - range;
+  const dLon = ((hash * 7) % 200) / 1000 - range;
+  return [dLat, dLon];
+}
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -32,36 +83,48 @@ export async function GET(req: NextRequest) {
   }
 
   const { riskLevel, limit } = parsed.data;
-  const now = new Date();
-  const riskLevelFilter = riskLevel ? { riskLevel: { in: riskLevel } } : {};
 
-  const scores = await prisma.riskScore.findMany({
-    where: { expiresAt: { gt: now }, ...riskLevelFilter },
-    orderBy: { computedAt: "desc" },
-    take: limit * 3,
-    include: {
-      policyholder: {
-        select: { id: true, firstName: true, lastName: true, address: true, latitude: true, longitude: true },
-      },
+  const claims = await prisma.claim.findMany({
+    where: {
+      incidentLocation: { not: "" },
+      fraudRisk: riskLevel ? { in: riskLevel } : undefined,
+    },
+    orderBy: { fraudScore: "desc" },
+    take: limit,
+    select: {
+      id: true,
+      claimNumber: true,
+      type: true,
+      incidentLocation: true,
+      fraudScore: true,
+      fraudRisk: true,
+      incidentDate: true,
     },
   });
 
-  // Dédupliquer : garder le score le plus récent par assuré
-  const seen = new Set<string>();
-  const points = scores
-    .filter((s) => { if (seen.has(s.policyholderId)) return false; seen.add(s.policyholderId); return true; })
-    .slice(0, limit)
-    .map((s) => ({
-      policyholderId: s.policyholderId,
-      firstName: s.policyholder.firstName,
-      lastName: s.policyholder.lastName,
-      address: s.policyholder.address,
-      lat: s.policyholder.latitude,
-      lon: s.policyholder.longitude,
-      scoreGlobal: s.scoreGlobal,
-      riskLevel: s.riskLevel,
-      computedAt: s.computedAt.toISOString(),
-    }));
+  const now = new Date();
+
+  const points = claims.map((c) => {
+    const base = extractCoords(c.incidentLocation);
+    let lat: number | null = null;
+    let lon: number | null = null;
+    if (base) {
+      const [dLat, dLon] = deterministicJitter(c.id);
+      lat = base[0] + dLat;
+      lon = base[1] + dLon;
+    }
+    return {
+      claimId: c.id,
+      claimNumber: c.claimNumber,
+      type: c.type,
+      incidentLocation: c.incidentLocation,
+      lat,
+      lon,
+      fraudScore: c.fraudScore ?? 0,
+      riskLevel: (c.fraudRisk ?? "LOW") as "LOW" | "MODERATE" | "HIGH" | "CRITICAL",
+      incidentDate: c.incidentDate.toISOString(),
+    };
+  });
 
   return NextResponse.json({ data: points, total: points.length, generatedAt: now.toISOString() });
 }
