@@ -45,7 +45,8 @@
       "Read(//c/Users/yvesb/**)",
       "Bash(DATABASE_URL=\"postgresql://postgres.ngumlupgzlbdovryqeuv:1x1WFlYARJiHTqaU@aws-0-eu-west-1.pooler.supabase.com:6543/defaultdb\" npx prisma:*)",
       "Bash(python3:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(taskkill /F /IM node.exe 2>/dev/null; echo \"done\")"
     ]
   }
 }

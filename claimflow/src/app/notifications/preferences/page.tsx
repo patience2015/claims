@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Bell, Save, Mail, Smartphone, Shield, AlertTriangle, FileText, Clock, UserCheck } from "lucide-react";
+import { Bell, Save, Mail, Smartphone, Shield, AlertTriangle, FileText, Clock, UserCheck, UserX } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import type { NotificationType } from "@/types";
 
@@ -71,6 +71,21 @@ const TYPE_META: Record<NotificationType, { label: string; description: string; 
     label: "Réseau escaladé",
     description: "Quand un réseau suspect est escaladé en investigation",
     icon: AlertTriangle,
+  },
+  USER_ACTIVATED: {
+    label: "Compte activé",
+    description: "Quand votre compte est réactivé par un administrateur",
+    icon: UserCheck,
+  },
+  USER_DEACTIVATED: {
+    label: "Compte désactivé",
+    description: "Quand votre compte est désactivé par un administrateur",
+    icon: UserX,
+  },
+  ROLE_CHANGED: {
+    label: "Rôle modifié",
+    description: "Quand votre rôle est modifié par un administrateur",
+    icon: Shield,
   },
 };
 

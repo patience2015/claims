@@ -9,7 +9,7 @@ const PROBABILITY_TABLE: Record<string, Record<string, number>> = {
   CLOSED:         { DEFAULT: 0.98 },
 };
 
-export function getProbabilityResolution(status: string, _type: string): number {
+export function getProbabilityResolution(status: string): number {
   return PROBABILITY_TABLE[status]?.DEFAULT ?? 0.60;
 }
 
@@ -62,7 +62,7 @@ export async function computePortfolioProvisions(
   }[] = [];
 
   for (const claim of claims) {
-    const prob = getProbabilityResolution(claim.status, claim.type);
+    const prob = getProbabilityResolution(claim.status);
     const be = computeBestEstimate(claim.estimatedAmount, prob);
     const scr = computeSCR(be);
     const rm = computeRiskMargin(scr, RISK_FREE_RATE);

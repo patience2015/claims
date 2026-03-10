@@ -12,7 +12,7 @@ const UpdateConfigSchema = z.object({
   key: z.string().min(1).default("default"),
 });
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   if (session.user.role !== "ADMIN") {

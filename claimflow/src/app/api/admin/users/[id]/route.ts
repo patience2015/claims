@@ -3,7 +3,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { UpdateUserSchema } from "@/lib/validations";
 import { createAuditLog } from "@/lib/audit";
+import { createNotification } from "@/lib/notification-service";
 import bcrypt from "bcryptjs";
+
+const ROLE_LABELS: Record<string, string> = {
+  HANDLER: "Gestionnaire",
+  MANAGER: "Manager",
+  ADMIN: "Administrateur",
+};
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -45,6 +52,39 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     after: updateData,
     userId: session.user.id,
   });
+
+  // Notify the affected user of changes to their account
+  // Don't notify the admin who made the change
+  if (user.id !== session.user.id) {
+    const adminName = session.user.name ?? "Un administrateur";
+
+    if (parsed.data.active === true && existing.active === false) {
+      await createNotification({
+        userId: user.id,
+        type: "USER_ACTIVATED",
+        title: "Votre compte a été activé",
+        body: `${adminName} a réactivé votre compte ClaimFlow.`,
+      });
+    } else if (parsed.data.active === false && existing.active === true) {
+      await createNotification({
+        userId: user.id,
+        type: "USER_DEACTIVATED",
+        title: "Votre compte a été désactivé",
+        body: `${adminName} a désactivé votre compte ClaimFlow.`,
+      });
+    }
+
+    if (parsed.data.role && parsed.data.role !== existing.role) {
+      const newRoleLabel = ROLE_LABELS[parsed.data.role] ?? parsed.data.role;
+      const oldRoleLabel = ROLE_LABELS[existing.role] ?? existing.role;
+      await createNotification({
+        userId: user.id,
+        type: "ROLE_CHANGED",
+        title: "Votre rôle a été modifié",
+        body: `${adminName} a changé votre rôle de ${oldRoleLabel} à ${newRoleLabel}.`,
+      });
+    }
+  }
 
   return NextResponse.json({ data: user });
 }

@@ -4,7 +4,7 @@ import { UserRole } from "@/types";
 export const permissions = {
   // Claims
   canViewAllClaims: (role: UserRole) => role === "MANAGER" || role === "ADMIN",
-  canCreateClaim: (_role?: UserRole) => true,
+  canCreateClaim: () => true,
   canEditClaim: (role: UserRole, isOwner: boolean) =>
     role === "MANAGER" || role === "ADMIN" || isOwner,
   canApproveClaim: (role: UserRole) => role === "MANAGER" || role === "ADMIN",
@@ -13,7 +13,7 @@ export const permissions = {
   canDeleteClaim: (role: UserRole) => role === "ADMIN",
 
   // AI Analysis
-  canRunAI: (_role?: UserRole) => true,
+  canRunAI: () => true,
 
   // Dashboard
   canViewFullDashboard: (role: UserRole) => role === "MANAGER" || role === "ADMIN",

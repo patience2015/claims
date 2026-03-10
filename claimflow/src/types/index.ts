@@ -75,7 +75,10 @@ export type NotificationType =
   | "SLA_BREACH"
   | "DOCUMENT_UPLOADED_BY_POLICYHOLDER"
   | "NETWORK_FRAUD_ALERT"
-  | "NETWORK_ESCALATED";
+  | "NETWORK_ESCALATED"
+  | "USER_ACTIVATED"
+  | "USER_DEACTIVATED"
+  | "ROLE_CHANGED";
 
 export type NotificationStatus = "UNREAD" | "READ";
 

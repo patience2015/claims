@@ -25,9 +25,6 @@ interface AcprReportSummary {
   generatedAt: string | null;
 }
 
-interface GdprErasureSummary {
-  total: number;
-}
 
 interface SolvencyReportSummary {
   id: string;

@@ -12,6 +12,8 @@ import {
   FileText,
   RefreshCw,
   UserCheck,
+  UserX,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -101,6 +103,24 @@ const TYPE_CONFIG: Record<NotificationType, IconConfig> = {
     iconClass: "text-red-700",
     bgClass: "bg-red-100",
     label: "Réseau escaladé",
+  },
+  USER_ACTIVATED: {
+    Icon: UserCheck,
+    iconClass: "text-emerald-500",
+    bgClass: "bg-emerald-50",
+    label: "Compte activé",
+  },
+  USER_DEACTIVATED: {
+    Icon: UserX,
+    iconClass: "text-red-500",
+    bgClass: "bg-red-50",
+    label: "Compte désactivé",
+  },
+  ROLE_CHANGED: {
+    Icon: Shield,
+    iconClass: "text-indigo-500",
+    bgClass: "bg-indigo-50",
+    label: "Rôle modifié",
   },
 };
 
