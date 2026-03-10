@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/cron/acpr-monthly", "schedule": "0 2 1 * *" },
+    { "path": "/api/cron/gdpr-purge", "schedule": "0 3 * * 0" },
+    { "path": "/api/cron/solvency-quarterly", "schedule": "0 4 1 1,4,7,10 *" }
+  ]
+}

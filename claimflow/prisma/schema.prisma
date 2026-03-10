@@ -26,6 +26,13 @@ model User {
   policyholderProfile     Policyholder?            @relation("UserPolicyholder")
   notifications           Notification[]           @relation("UserNotifications")
   notificationPreferences NotificationPreference[] @relation("UserNotificationPrefs")
+  acprReports             AcprReport[]             @relation("AcprReportAuthor")
+  acprConfigs             AcprReportConfig[]       @relation("AcprConfigAuthor")
+  gdprRequests            GdprErasureRequest[]     @relation("GdprRequestAuthor")
+  gdprExecutions          GdprErasureRequest[]     @relation("GdprExecutor")
+  gdprAccessLogs          GdprDataAccessLog[]      @relation("GdprAccessor")
+  solvencyProvisions      SolvencyProvision[]      @relation("ProvisionAuthor")
+  solvencyReports         SolvencyReport[]         @relation("SolvencyReportAuthor")
 }
 
 model Policyholder {
@@ -105,6 +112,7 @@ model Claim {
   emailNotifications EmailNotification[]
   notifications      Notification[]      @relation("ClaimNotifications")
   fraudNetwork       FraudNetwork?       @relation("ClaimNetwork", fields: [networkId], references: [id])
+  provisions         SolvencyProvision[] @relation("ClaimProvisions")
 }
 
 model Document {
@@ -316,4 +324,126 @@ model RiskAlertLog {
   createdAt           DateTime     @default(now())
 
   @@index([policyholderId])
+}
+
+model AcprReport {
+  id                  String   @id @default(cuid())
+  reportNumber        String   @unique
+  periodStart         DateTime
+  periodEnd           DateTime
+  generatedAt         DateTime @default(now())
+  fileUrl             String?
+  fileHash            String?
+  status              String   @default("PENDING")
+  errorMessage        String?
+  claimsOpened        Int      @default(0)
+  claimsClosed        Int      @default(0)
+  claimsNew           Int      @default(0)
+  totalProvisioned    Float    @default(0)
+  fraudRate           Float    @default(0)
+  avgProcessingDays   Float    @default(0)
+  claimToPremiumRatio Float    @default(0)
+  indemnitesPaid      Float    @default(0)
+  indemnitesWaiting   Float    @default(0)
+  configSnapshot      String?
+  generatedById       String?
+  generatedBy         User?    @relation("AcprReportAuthor", fields: [generatedById], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  @@index([periodStart, periodEnd])
+  @@index([status])
+}
+
+model AcprReportConfig {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  logoBase64     String?
+  headerTitle    String   @default("Rapport ACPR — ClaimFlow")
+  headerSubtitle String?
+  sections       String   @default("[\"claims\",\"fraud\",\"sla\",\"provisions\"]")
+  footerText     String?
+  updatedById    String?
+  updatedBy      User?    @relation("AcprConfigAuthor", fields: [updatedById], references: [id])
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+}
+
+model GdprErasureRequest {
+  id              String    @id @default(cuid())
+  policyholderId  String
+  requestedAt     DateTime  @default(now())
+  executedAt      DateTime?
+  status          String    @default("PENDING")
+  rejectionReason String?
+  requestedById   String
+  requestedBy     User      @relation("GdprRequestAuthor", fields: [requestedById], references: [id])
+  executedById    String?
+  executedBy      User?     @relation("GdprExecutor", fields: [executedById], references: [id])
+  metadata        String?
+  @@index([status])
+  @@index([policyholderId])
+}
+
+model GdprDataAccessLog {
+  id          String   @id @default(cuid())
+  accessorId  String
+  accessor    User     @relation("GdprAccessor", fields: [accessorId], references: [id])
+  entityType  String
+  entityId    String
+  action      String
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  @@index([accessorId])
+  @@index([entityId, entityType])
+  @@index([createdAt])
+}
+
+model GdprPurgeLog {
+  id           String   @id @default(cuid())
+  purgeType    String
+  recordsCount Int      @default(0)
+  periodCutoff DateTime
+  executedAt   DateTime @default(now())
+  triggeredBy  String   @default("CRON")
+  metadata     String?
+  @@index([purgeType])
+  @@index([executedAt])
+}
+
+model SolvencyProvision {
+  id                    String   @id @default(cuid())
+  claimId               String
+  claim                 Claim    @relation("ClaimProvisions", fields: [claimId], references: [id], onDelete: Cascade)
+  computedAt            DateTime @default(now())
+  periodQuarter         String
+  bestEstimate          Float
+  riskFreeRate          Float    @default(0.035)
+  scr                   Float
+  riskMargin            Float
+  totalProvision        Float
+  probabilityResolution Float    @default(0.8)
+  futureFlows           Float
+  status                String   @default("ACTIVE")
+  computedById          String?
+  computedBy            User?    @relation("ProvisionAuthor", fields: [computedById], references: [id])
+  @@index([claimId])
+  @@index([periodQuarter])
+  @@index([status])
+}
+
+model SolvencyReport {
+  id              String   @id @default(cuid())
+  reportNumber    String   @unique
+  periodQuarter   String
+  totalBE         Float    @default(0)
+  totalSCR        Float    @default(0)
+  totalRM         Float    @default(0)
+  totalProvisions Float    @default(0)
+  claimCount      Int      @default(0)
+  generatedAt     DateTime @default(now())
+  generatedById   String?
+  generatedBy     User?    @relation("SolvencyReportAuthor", fields: [generatedById], references: [id])
+  snapshotJson    String?
+  @@index([periodQuarter])
 }

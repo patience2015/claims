@@ -52,7 +52,18 @@ export type AuditAction =
   | "NETWORK_ESCALATED"
   | "NETWORK_RECOMPUTED"
   | "NETWORK_ARCHIVED"
-  | "RISK_SCORE_COMPUTED";
+  | "RISK_SCORE_COMPUTED"
+  | "ACPR_REPORT_GENERATED"
+  | "ACPR_REPORT_DOWNLOADED"
+  | "ACPR_CONFIG_UPDATED"
+  | "GDPR_ERASURE_REQUESTED"
+  | "GDPR_ERASURE_EXECUTED"
+  | "GDPR_EXPORT_GENERATED"
+  | "GDPR_DATA_ACCESSED"
+  | "GDPR_PURGE_EXECUTED"
+  | "SOLVENCY_PROVISIONS_COMPUTED"
+  | "SOLVENCY_REPORT_GENERATED"
+  | "EXCEL_EXPORT_GENERATED";
 
 // Notification types
 export type NotificationType =
@@ -462,5 +473,50 @@ export interface RiskScoreHistoryItem {
   factorZone: number;
   factorPeriode: number;
   factorMeteo: number;
+  computedAt: string;
+}
+
+// ─── Audit réglementaire ──────────────────────────────────────────────────────
+
+export type GdprErasureStatus = "PENDING" | "EXECUTED" | "REJECTED";
+export type AcprReportStatus = "PENDING" | "GENERATED" | "ARCHIVED" | "FAILED";
+
+export interface AcprMetrics {
+  claimsOpened: number;
+  claimsClosed: number;
+  claimsNew: number;
+  totalProvisioned: number;
+  fraudRate: number;
+  avgProcessingDays: number;
+  claimToPremiumRatio: number;
+  indemnitesPaid: number;
+  indemnitesWaiting: number;
+}
+
+export interface GdprExportPayload {
+  exportedAt: string;
+  policyholder: Record<string, unknown>;
+  claims: Record<string, unknown>[];
+  auditTrail: Record<string, unknown>[];
+}
+
+export interface ExcelExportParams {
+  period: "month" | "quarter" | "year";
+  year: number;
+  month?: number;
+  quarter?: "Q1" | "Q2" | "Q3" | "Q4";
+  claimType: string;
+}
+
+export interface SolvencyProvisionItem {
+  id: string;
+  claimId: string;
+  periodQuarter: string;
+  bestEstimate: number;
+  scr: number;
+  riskMargin: number;
+  totalProvision: number;
+  probabilityResolution: number;
+  status: string;
   computedAt: string;
 }

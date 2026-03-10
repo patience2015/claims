@@ -6,7 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Shield, LogOut, User, Network, Map } from "lucide-react";
+import { LayoutDashboard, FileText, Shield, LogOut, User, Network, Map, Scale } from "lucide-react";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["MANAGER", "ADMIN"] },
   { href: "/fraud-networks", label: "Réseaux suspects", icon: Network, roles: ["MANAGER", "ADMIN"] },
   { href: "/analytics/risk-heatmap", label: "Carte de risque", icon: Map, roles: ["MANAGER", "ADMIN"] },
+  { href: "/compliance", label: "Conformité", icon: Scale, roles: ["MANAGER", "ADMIN"] },
   { href: "/admin", label: "Administration", icon: Shield, roles: ["ADMIN"] },
 ];
 
