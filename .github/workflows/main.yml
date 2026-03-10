@@ -56,6 +56,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      deployments: write
     defaults:
       run:
         working-directory: claimflow
@@ -72,11 +75,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install @cloudflare/next-on-pages
-        run: npm install -D @cloudflare/next-on-pages
-
-      - name: Build for Cloudflare Pages
-        run: npx @cloudflare/next-on-pages
+      - name: Build Next.js
+        run: npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
@@ -91,7 +91,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: claimflow
-          directory: claimflow/.vercel/output/static
+          directory: claimflow/.next
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           branch: main
 
